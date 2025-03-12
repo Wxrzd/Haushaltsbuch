@@ -2,8 +2,18 @@
 Repository für das Modul "Programmierung von Webanwendungen"
 Projekt: Entwicklung eines digitalen Haushaltsbuches zur Überwachung seiner Einnahmen/Ausgaben
 
-# Installieren der Abhängigkeiten und Bibliotheken
-Alle benötigten Python-Bibliotheken sind in der Datei requirements.txt aufgelistet. Du kannst sie mit folgendem Befehl installieren:
- ```sh
+## Setup Instructions
+
+1. **Install Python dependencies:**
+   ```sh
    pip install -r requirements.txt
+   ```
+
+2. **Set up environment variables:**
+   Create a `.env` file in the root directory with the following content:
+   ```env
+   DB_USER=<your-database-username>
+   DB_PASSWORD=<your-database-password>
+   DB_PORT=<your-database-port>
+   DB_NAME=<your-database-name>
    ```
