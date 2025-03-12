@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Buchungen{% endblock %}
+
+{% block content %}
+    <h1>Buchungen</h1>
+    <a href="{% url 'buchung_create' %}"><button>Neue Buchung hinzufügen</button></a>
+    <table>
+        <tr>
+            <th>Betrag</th>
+            <th>Konto</th>
+            <th>Kategorie</th>
+            <th>Datum</th>
+            <th>Beschreibung</th>
+            <th>Typ</th>
+        </tr>
+        {% for buchung in buchungen %}
+        <tr>
+            <td>{{ buchung.betrag }} €</td>
+            <td>{{ buchung.konto.name }}</td>
+            <td>{{ buchung.kategorie }}</td>
+            <td>{{ buchung.datum }}</td>
+            <td>{{ buchung.beschreibung }}</td>
+            <td>{{ buchung.betragstyp }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Keine Buchungen vorhanden.</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
