@@ -17,3 +17,7 @@ Projekt: Entwicklung eines digitalen Haushaltsbuches zur Überwachung seiner Ein
    DB_PORT=<your-database-port>
    DB_NAME=<your-database-name>
    ```
+3. **Run the applicatioin**
+ ```sh
+   python manage.py runserver
+```
