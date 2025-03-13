@@ -16,12 +16,10 @@
         </tr>
         {% for buchung in buchungen %}
         <tr>
-            <td>{{ buchung.betrag }} €</td>
-            <td>{{ buchung.konto.name }}</td>
-            <td>{{ buchung.kategorie }}</td>
-            <td>{{ buchung.datum }}</td>
-            <td>{{ buchung.beschreibung }}</td>
-            <td>{{ buchung.betragstyp }}</td>
+            <td>{{ buchung.Betrag }} €</td>  <!-- Betrag statt betrag -->
+            <td>{{ buchung.KontoNr.name }}</td>  <!-- KontoNr statt konto -->
+            <td>{{ buchung.KategorieNr.name }}</td>  <!-- KategorieNr statt kategorie -->
+            <td>{{ buchung.Buchungsart }}</td>  <!-- Buchungsart (anstelle von Betragstyp) -->
         </tr>
         {% empty %}
         <tr>
