@@ -24,6 +24,7 @@ class Kategorie(models.Model):
 
     KategorieNr = models.AutoField(primary_key=True)
     Kategoriebezeichnung = models.CharField(max_length=100, db_column='Kategoriebezeichnung')
+    Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, db_column='Benutzername')
 
 class Vertrag(models.Model):
     class Meta:
