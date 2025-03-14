@@ -1,9 +1,38 @@
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
-class Nutzer(models.Model):
-    Benutzername = models.CharField(max_length=100, primary_key=True, db_column='Benutzername')
-    Email = models.CharField(max_length=100, db_column='Email')
-    Passwort = models.CharField(max_length=100, db_column='Passwort')
+
+class NutzerManager(BaseUserManager):
+    def create_user(self, Benutzername, EMail, Passwort=None, **extra_fields):
+        if not EMail:
+            raise ValueError('Die E-Mail-Adresse muss angegeben werden')
+        email = self.normalize_email(EMail)
+        user = self.model(Benutzername=Benutzername, EMail=email, **extra_fields)
+        user.set_password(Passwort)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, Benutzername, EMail, Passwort=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(Benutzername, EMail, Passwort, **extra_fields)
+
+
+class Nutzer(AbstractBaseUser, PermissionsMixin):
+    Benutzername = models.CharField(max_length=150, unique=True)
+    EMail = models.EmailField(unique=True)
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = NutzerManager()
+
+    USERNAME_FIELD = 'Benutzername'
+    EMAIL_FIELD = 'EMail'
+    REQUIRED_FIELDS = ['EMail']
+
+    def __str__(self):
+        return self.Benutzername
 
 class Konto(models.Model):
     KontoNr = models.AutoField(primary_key=True)  

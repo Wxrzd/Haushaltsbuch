@@ -1,5 +1,15 @@
 from django import forms
-from .models import Buchung
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Buchung, Nutzer
+
+class RegistrierungsForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    class Meta:
+        model = Nutzer
+        fields = ['EMail', 'Benutzername', 'Passwort']
+
+class LoginForm(AuthenticationForm):
+    username = forms.EmailField()
 
 class BuchungForm(forms.ModelForm):
     class Meta:
