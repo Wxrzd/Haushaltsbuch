@@ -1,13 +1,86 @@
-{% extends 'core/base.html' %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .login-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input {
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: -8px;
+        }
+    </style>
+</head>
+<body>
 
-{% block content %}
-<h2>Login</h2>
-<form method="POST">
-    {% csrf_token %}
-    <table>
-        {{ form.as_table }}
-    </table>
-    <button type="submit">Login</button>
-</form>
-<a href="{% url 'registrierung' %}">Noch kein Konto? Hier registrieren</a>
-{% endblock %}
+<div class="login-container">
+    <h2>Login</h2>
+    <form method="POST">
+        {% csrf_token %}
+        
+        <label for="id_username">Benutzername</label>
+        <input type="text" name="username" id="id_username" required>
+        {% if form.username.errors %}
+            <p class="error-message">{{ form.username.errors.0 }}</p>
+        {% endif %}
+
+        <label for="id_password">Passwort</label>
+        <input type="password" name="password" id="id_password" required>
+        {% if form.password.errors %}
+            <p class="error-message">{{ form.password.errors.0 }}</p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <p class="error-message">{{ form.non_field_errors.0 }}</p>  <!-- Zeigt z.B. "Falsches Passwort" -->
+        {% endif %}
+        
+        <button type="submit">Login</button>
+    </form>
+    <p>Kein Konto? <a href="{% url 'registrierung' %}">Hier registrieren</a></p>
+</div>
+
+</body>
+</html>

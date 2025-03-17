@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.views.generic import ListView
-from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Buchung, Konto, Vertrag, Benutzer
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
+from .models import Buchung, Konto, Vertrag
+from .forms import BuchungForm, KontoForm, RegistrierungsForm
 
+@login_required
 def home(request):
     return render(request, 'core/home.html')
 
@@ -21,18 +22,23 @@ def registrierung_view(request):
     return render(request, 'core/registrierung.html', {'form': form})
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('buchung_list')  # Falls bereits eingeloggt, weiterleiten
+
+    form = AuthenticationForm(data=request.POST or None)
+    
     if request.method == 'POST':
-        form = LoginForm(data=request.POST)
+        form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('home')
+            return redirect('buchung_list')  # Erfolgreicher Login -> Weiterleitung
         else:
-            messages.error(request, "Ungültiger Benutzername oder falsches Passwort.")
-    
-    form = LoginForm()
+            form.add_error(None, "Benutzername oder Passwort ist falsch.")  # Allgemeine Fehlermeldung
+
     return render(request, 'core/login.html', {'form': form})
 
+@login_required
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -71,13 +77,12 @@ def buchung_update(request, pk):
 
     return render(request, 'core/buchung_form.html', {'form': form})
 
-
-
 class VertragsListeView(ListView):
     model = Vertrag
     template_name = 'vertraege/vertrags_liste.html'  # Pfad zur HTML-Vorlage
     context_object_name = 'vertraege'  # Name der Variable im Template
 
+@login_required
 def buchung_delete(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)
     if request.method == 'POST':
@@ -105,6 +110,7 @@ def konto_create(request):
 
     return render(request, 'core/konto_form.html', {'form': form})
 
+@login_required
 def konto_update(request, pk):
     konto = get_object_or_404(Konto, pk=pk)
     if request.method == 'POST':
@@ -116,6 +122,7 @@ def konto_update(request, pk):
         form = KontoForm(instance=konto)
     return render(request, 'core/konto_form.html', {'form': form})
 
+@login_required
 def konto_delete(request, pk):
     konto = get_object_or_404(Konto, pk=pk)
     if request.method == 'POST':

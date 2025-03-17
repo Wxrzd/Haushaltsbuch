@@ -14,9 +14,6 @@ class RegistrierungsForm(UserCreationForm):
             raise forms.ValidationError("Diese E-Mail-Adresse wird bereits verwendet.")
         return email
 
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(label="Benutzername")
-
 class BuchungForm(forms.ModelForm):
     buchungsdatum = forms.DateField(
         widget=forms.DateInput(attrs={
