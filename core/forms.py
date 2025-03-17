@@ -41,4 +41,16 @@ class BuchungForm(forms.ModelForm):
 class KontoForm(forms.ModelForm):
     class Meta:
         model = Konto
-        fields = ['name', 'kontotyp', 'benutzer']
+        fields = ['name', 'kontotyp']  # 'benutzer' wird entfernt, da es automatisch gesetzt wird
+
+    def __init__(self, *args, user=None, **kwargs):
+        super(KontoForm, self).__init__(*args, **kwargs)
+        self.user = user  # Speichert den angemeldeten Nutzer
+
+    def save(self, commit=True):
+        konto = super().save(commit=False)
+        if self.user:
+            konto.benutzer = self.user  # Setzt den angemeldeten Nutzer als Besitzer des Kontos
+        if commit:
+            konto.save()
+        return konto

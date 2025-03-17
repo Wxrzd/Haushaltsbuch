@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.views.generic import ListView
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import Buchung, Konto, Vertrag, Benutzer
 from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
 
@@ -81,15 +82,17 @@ def konto_list(request):
         konto.kontostand = konto.berechne_kontostand()  # Aktualisiere den Kontostand
     return render(request, 'core/konto_list.html', {'konten': konten})
 
+@login_required
 def konto_create(request):
-    if request.method == 'POST':
-        form = KontoForm(request.POST)
+    if request.method == "POST":
+        form = KontoForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('konto_list')
+            return redirect('konto_liste')  # Passe den Namen der Zielseite an
     else:
-        form = KontoForm()
-    return render(request, 'core/konto_form.html', {'form': form})
+        form = KontoForm(user=request.user)  # Hier wird das Formular für GET-Requests initialisiert
+
+    return render(request, 'konto_form.html', {'form': form})
 
 def konto_update(request, pk):
     konto = get_object_or_404(Konto, pk=pk)
