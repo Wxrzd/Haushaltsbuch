@@ -93,7 +93,7 @@ def vertrag_create(request):
             vertrag = form.save(commit=False)
             vertrag.benutzer = request.user  # Setze den Benutzer als Eigentümer des Vertrags
             vertrag.save()
-            return redirect('vertraege_liste')  # Zur Vertragsliste weiterleiten
+            return redirect('vertraeg_list')  # Zur Vertragsliste weiterleiten
     else:
         form = VertragForm(user=request.user)  # Benutzer übergeben
 
