@@ -21,6 +21,24 @@ def buchung_create(request):
 
     return render(request, 'core/buchung_form.html', {'form': form})
 
+def buchung_update(request, pk):
+    buchung = get_object_or_404(Buchung, pk=pk)
+    if request.method == 'POST':
+        form = BuchungForm(request.POST, instance=buchung)
+        if form.is_valid():
+            form.save()
+            return redirect('buchung_list')
+    else:
+        form = BuchungForm(instance=buchung)
+    return render(request, 'core/buchung_form.html', {'form': form})
+
+def buchung_delete(request, pk):
+    buchung = get_object_or_404(Buchung, pk=pk)
+    if request.method == 'POST':
+        buchung.delete()
+        return redirect('buchung_list')
+    return render(request, 'core/buchung_confirm_delete.html', {'buchung': buchung})
+
 def konto_list(request):
     konten = Konto.objects.all()
     for konto in konten:
