@@ -1,0 +1,2 @@
+# Weitere Funktionen
+Standardkategorien einfügen

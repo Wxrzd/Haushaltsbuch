@@ -21,3 +21,6 @@ Projekt: Entwicklung eines digitalen Haushaltsbuches zur Überwachung seiner Ein
  ```sh
    python manage.py runserver
 ```
+
+## Hinweise
+Strg + C um den Server zu beenden

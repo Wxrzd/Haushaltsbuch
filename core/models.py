@@ -38,15 +38,25 @@ class Nutzer(AbstractBaseUser, PermissionsMixin):
         return self.Benutzername
 
 
+    class Meta:
+        db_table = 'Nutzer'
+
+    def __str__(self):
+        return self.Benutzername
+
 class Konto(models.Model):
     KontoNr = models.AutoField(primary_key=True)  
     Kontobezeichnung = models.CharField(max_length=100, db_column='Kontobezeichnung')
     Kontotyp = models.CharField(max_length=50, db_column='Kontotyp')
-    Kontostand = models.DecimalField(max_digits=10, decimal_places=2, db_column='Kontostand')
     Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, db_column='Benutzername')
 
     class Meta:
-        db_table = 'Konto'  # Stellt sicher, dass Django die bestehende MySQL-Tabelle nutzt
+        db_table = 'Konto'
+
+    def berechne_kontostand(self):
+        einnahmen = self.buchung_set.filter(Buchungsart='Einnahme').aggregate(models.Sum('Betrag'))['Betrag__sum'] or 0
+        ausgaben = self.buchung_set.filter(Buchungsart='Ausgabe').aggregate(models.Sum('Betrag'))['Betrag__sum'] or 0
+        return einnahmen - ausgaben
 
     def __str__(self):
         return self.Kontobezeichnung
@@ -57,6 +67,10 @@ class Kategorie(models.Model):
 
     KategorieNr = models.AutoField(primary_key=True)
     Kategoriebezeichnung = models.CharField(max_length=100, db_column='Kategoriebezeichnung')
+    Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, db_column='Benutzername')
+
+    def __str__(self):
+        return self.Kategoriebezeichnung
 
 class Vertrag(models.Model):
     class Meta:
@@ -71,6 +85,9 @@ class Vertrag(models.Model):
     KontoNr = models.ForeignKey(Konto, on_delete=models.CASCADE, db_column='KontoNr')
     KategorieNr = models.ForeignKey('Kategorie', on_delete=models.CASCADE, db_column='KategorieNr')
 
+    def __str__(self):
+        return self.Name
+
 class Buchung(models.Model):
     class Meta:
         db_table = "Buchung"  # Setzt den exakten Tabellennamen in MySQL
@@ -82,6 +99,7 @@ class Buchung(models.Model):
     
     BuchungsNr = models.AutoField(primary_key=True)
     Betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    Buchungsdatum = models.DateField()
     Buchungsart = models.CharField(max_length=50)
 
     KontoNr = models.ForeignKey(Konto, on_delete=models.CASCADE, db_column='KontoNr')

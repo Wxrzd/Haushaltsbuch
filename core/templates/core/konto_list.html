@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Kontenübersicht{% endblock %}
+
+{% block content %}
+<h1>Kontenübersicht</h1>
+<a href="{% url 'konto_create' %}">+ Neues Konto</a>
+<table>
+    <tr>
+        <th>Kontobezeichnung</th>
+        <th>Kontotyp</th>
+        <th>Kontostand</th>
+        <th>Aktionen</th>
+    </tr>
+    {% for konto in konten %}
+    <tr>
+        <td>{{ konto.Kontobezeichnung }}</td>
+        <td>{{ konto.Kontotyp }}</td>
+        <td>{{ konto.berechne_kontostand }} €</td>
+        <td>
+            <a href="{% url 'konto_update' konto.KontoNr %}">Bearbeiten</a>
+            <a href="{% url 'konto_delete' konto.KontoNr %}">Löschen</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
