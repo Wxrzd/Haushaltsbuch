@@ -90,6 +90,22 @@ class Buchung(models.Model):
 
     def __str__(self):
         return f"Buchung {self.BuchungsNr}: {self.Betrag} EUR, {self.Buchungsart}"
+
+
+class Vertrag(models.Model):
+    VertragsNr = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    Betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    Ablaufdatum = models.DateField()
+    Intervall = models.CharField(max_length=50)  # z. B. "monatlich", "jährlich"
+
+    # Fremdschlüssel zu Nutzer, Konto und Kategorie
+    Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, to_field='Benutzername')
+    KontoNr = models.ForeignKey('Konto', on_delete=models.CASCADE, to_field='KontoNr')
+    KategorieNr = models.ForeignKey('Kategorie', on_delete=models.CASCADE, to_field='KategorieNr')
+
+    def __str__(self):
+        return f"{self.Name} ({self.Benutzername})"
     
 
 

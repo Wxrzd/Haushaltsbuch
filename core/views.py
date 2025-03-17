@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
-from .models import Buchung
+from django.views.generic import ListView
+from .models import Buchung, Vertrag
 from .forms import BuchungForm
+
+
 
 def home(request):
     return render(request, 'core/home.html')
@@ -50,3 +53,8 @@ def buchung_create(request):
     else:
         form = BuchungForm()
     return render(request, 'core/buchung_form.html', {'form': form})
+
+class VertragsListeView(ListView):
+    model = Vertrag
+    template_name = 'vertraege/vertrags_liste.html'  # Pfad zur HTML-Vorlage
+    context_object_name = 'vertraege'  # Name der Variable im Template
