@@ -9,7 +9,7 @@ class RegistrierungsForm(forms.ModelForm):
         fields = ['EMail', 'Benutzername', 'Passwort']
 
 class LoginForm(AuthenticationForm):
-    username = forms.EmailField()
+    username = forms.CharField(label="Benutzername")
 
 class BuchungForm(forms.ModelForm):
     class Meta:
