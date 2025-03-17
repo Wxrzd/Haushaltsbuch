@@ -20,8 +20,16 @@
         <td>{{ vertrag.ablaufdatum }}</td>
         <td>{{ vertrag.intervall }}</td>
         <td>
-            <a href="{% url 'vertrag_update' vertrag.id %}">Bearbeiten</a> |
-            <a href="{% url 'vertrag_delete' vertrag.id %}">Löschen</a>
+            {% if vertrag.pk %}
+                <a href="{% url 'vertrag_update' vertrag.pk %}">Bearbeiten</a>
+            {% else %}
+                <span>Kein Vertrag vorhanden</span>
+            {% endif %}
+            {% if vertrag.pk %}
+                <a href="{% url 'vertrag_delete' vertrag.pk %}">Löschen</a>
+            {% else %}
+                <span>Kein Vertrag vorhanden</span>
+            {% endif %}
         </td>
     </tr>
     {% empty %}

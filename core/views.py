@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
-from django.views.generic import ListView
+from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Buchung, Konto, Vertrag, Benutzer
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
+from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm, VertragForm
+
 
 def home(request):
     return render(request, 'core/home.html')
@@ -64,14 +65,17 @@ def buchung_update(request, pk):
         form = BuchungForm(instance=buchung)
     return render(request, 'core/buchung_form.html', {'form': form})
 
-def vertrag_list(request):
-    # Alle gültigen Verträge abrufen
-    vertraege = Vertrag.objects.filter(ablaufdatum__gte=now(), benutzer=request.user)
 
-    return render(request, "core/vertrag_list.html", {"vertraege": vertraege})
+@login_required
+def vertrag_list(request):
+    """ Zeigt alle Verträge des eingeloggten Benutzers an """
+    vertraege = Vertrag.objects.filter(benutzer=request.user)
+    return render(request, 'core/vertrag_list.html', {'vertraege': vertraege})
+
 
 @login_required
 def vertrag_create(request):
+    """ Erstellt einen neuen Vertrag """
     if request.method == "POST":
         form = VertragForm(request.POST)
         if form.is_valid():
@@ -84,9 +88,11 @@ def vertrag_create(request):
 
     return render(request, 'core/vertrag_form.html', {'form': form})
 
+
+@login_required
 def vertrag_update(request, pk):
-    """Bearbeitet einen bestehenden Vertrag."""
-    vertrag = get_object_or_404(Vertrag, pk=pk)
+    """ Bearbeitet einen bestehenden Vertrag """
+    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
     if request.method == "POST":
         form = VertragForm(request.POST, instance=vertrag)
         if form.is_valid():
@@ -94,15 +100,41 @@ def vertrag_update(request, pk):
             return redirect('vertrag_list')
     else:
         form = VertragForm(instance=vertrag)
+
     return render(request, 'core/vertrag_form.html', {'form': form})
 
+
+@login_required
 def vertrag_delete(request, pk):
-    """Löscht einen Vertrag nach Bestätigung."""
-    vertrag = get_object_or_404(Vertrag, pk=pk)
+    """ Löscht einen Vertrag """
+    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
     if request.method == "POST":
         vertrag.delete()
         return redirect('vertrag_list')
+
     return render(request, 'core/vertrag_confirm_delete.html', {'vertrag': vertrag})
+
+
+@login_required
+def vertrag_erneuern(request):
+    """ Erstellt automatisch Buchungen basierend auf bestehenden Verträgen """
+    vertraege = Vertrag.objects.filter(benutzer=request.user)
+
+    for vertrag in vertraege:
+        if vertrag.ablaufdatum <= timezone.now().date():
+            vertrag.delete()  # Vertrag löschen, wenn Ablaufdatum erreicht ist
+        else:
+            # Neue Buchung für den Vertrag generieren
+            Buchung.objects.create(
+                betrag=vertrag.betrag,
+                buchungsdatum=timezone.now().date(),
+                buchungsart="Ausgabe",
+                konto=vertrag.konto,
+                kategorie=vertrag.kategorie,
+                vertrag=vertrag
+            )
+
+    return redirect('vertrag_list')
 
 def buchung_delete(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)
@@ -118,16 +150,18 @@ def konto_list(request):
     return render(request, 'core/konto_list.html', {'konten': konten})
 
 @login_required
-def konto_create(request):
+def vertrag_create(request):
     if request.method == "POST":
-        form = KontoForm(request.POST, user=request.user)
+        form = VertragForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('konto_liste')  # Passe den Namen der Zielseite an
+            vertrag = form.save(commit=False)
+            vertrag.benutzer = request.user  # Dem angemeldeten Benutzer zuweisen
+            vertrag.save()  # Hier wird die ID automatisch vergeben
+            return redirect('vertrag_list')  # Weiterleitung zur Vertragsliste
     else:
-        form = KontoForm(user=request.user)  # Hier wird das Formular für GET-Requests initialisiert
+        form = VertragForm()
 
-    return render(request, 'konto_form.html', {'form': form})
+    return render(request, 'core/vertrag_form.html', {'form': form})
 
 def konto_update(request, pk):
     konto = get_object_or_404(Konto, pk=pk)

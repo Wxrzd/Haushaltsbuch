@@ -54,3 +54,17 @@ class KontoForm(forms.ModelForm):
         if commit:
             konto.save()
         return konto
+
+class VertragForm(forms.ModelForm):
+    class Meta:
+        model = Vertrag
+        fields = ['name', 'betrag', 'ablaufdatum', 'intervall', 'konto', 'kategorie']
+        widgets = {
+            'ablaufdatum': forms.DateInput(attrs={'type': 'date'}),  # Kalenderfunktion
+            'intervall': forms.Select(choices=[
+                ('täglich', 'Täglich'),
+                ('wöchentlich', 'Wöchentlich'),
+                ('monatlich', 'Monatlich'),
+                ('jährlich', 'Jährlich'),
+            ]),
+        }
