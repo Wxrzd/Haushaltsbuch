@@ -5,7 +5,6 @@
 <table>
     <thead>
         <tr>
-            <th>Buchungsnummer</th>
             <th>Betrag</th>
             <th>Buchungsart</th>
             <th>Konto</th>
@@ -18,8 +17,7 @@
     <tbody>
         {% for buchung in buchungen %}
         <tr>
-            <td>{{ buchung.buchungsnummer }}</td>
-            <td>{{ buchung.betrag }} EUR</td>
+            <td>{{ buchung.betrag }} €</td>
             <td>{{ buchung.buchungsart }}</td>
             <td>{{ buchung.konto.kontobezeichnung }}</td>
             <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>

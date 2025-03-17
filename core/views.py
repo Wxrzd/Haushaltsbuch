@@ -88,11 +88,11 @@ def konto_create(request):
         form = KontoForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('konto_liste')  # Passe den Namen der Zielseite an
+            return redirect('konto_list')  # Passe den Namen der Zielseite an
     else:
         form = KontoForm(user=request.user)  # Hier wird das Formular für GET-Requests initialisiert
 
-    return render(request, 'konto_form.html', {'form': form})
+    return render(request, 'core/konto_form.html', {'form': form})
 
 def konto_update(request, pk):
     konto = get_object_or_404(Konto, pk=pk)
