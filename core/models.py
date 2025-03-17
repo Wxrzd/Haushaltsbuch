@@ -19,9 +19,8 @@ class NutzerManager(BaseUserManager):
 
 
 class Nutzer(AbstractBaseUser, PermissionsMixin):
-    Benutzername = models.CharField(max_length=150, unique=True)
+    Benutzername = models.CharField(max_length=150, unique=True, primary_key=True)
     EMail = models.EmailField(unique=True)
-    Passwort = models.CharField(max_length=128)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -37,6 +36,7 @@ class Nutzer(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.Benutzername
+
 
 class Konto(models.Model):
     KontoNr = models.AutoField(primary_key=True)  

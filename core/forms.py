@@ -1,12 +1,17 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import Buchung, Nutzer
 
-class RegistrierungsForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
+class RegistrierungsForm(UserCreationForm):
     class Meta:
         model = Nutzer
-        fields = ['EMail', 'Benutzername', 'Passwort']
+        fields = ['EMail', 'Benutzername', 'password1', 'password2']
+    
+    def clean_EMail(self):
+        email = self.cleaned_data.get('EMail')
+        if Nutzer.objects.filter(EMail=email).exists():
+            raise forms.ValidationError("Diese E-Mail-Adresse wird bereits verwendet.")
+        return email
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Benutzername")
