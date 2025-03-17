@@ -3,8 +3,8 @@ from django.contrib.auth import login, logout
 from django.utils import timezone
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Buchung, Konto, Vertrag
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, VertragForm
+from .models import Buchung, Konto, Vertrag, Kategorie
+from .forms import BuchungForm, KontoForm, RegistrierungsForm, VertragForm, KategorieForm
 
 
 @login_required
@@ -93,7 +93,7 @@ def vertrag_create(request):
             vertrag = form.save(commit=False)
             vertrag.benutzer = request.user  # Setze den Benutzer als Eigentümer des Vertrags
             vertrag.save()
-            return redirect('vertraeg_list')  # Zur Vertragsliste weiterleiten
+            return redirect('vertrag_list')  # Zur Vertragsliste weiterleiten
     else:
         form = VertragForm(user=request.user)  # Benutzer übergeben
 
@@ -103,17 +103,17 @@ def vertrag_create(request):
 @login_required
 def vertrag_update(request, pk):
     """ Bearbeitet einen bestehenden Vertrag """
-    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
+    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)  # Sicherstellen, dass nur eigene Verträge abrufbar sind
+
     if request.method == "POST":
-        form = VertragForm(request.POST, instance=vertrag)
+        form = VertragForm(request.POST, instance=vertrag, user=request.user)  # user übergeben
         if form.is_valid():
             form.save()
-            return redirect('vertrag_list')
+            return redirect('vertraege_liste')  # Korrigierter Redirect-Name
     else:
-        form = VertragForm(instance=vertrag)
+        form = VertragForm(instance=vertrag, user=request.user)  # user übergeben
 
     return render(request, 'core/vertrag_form.html', {'form': form})
-
 
 @login_required
 def vertrag_delete(request, pk):
@@ -127,7 +127,7 @@ def vertrag_delete(request, pk):
 
 
 @login_required
-def vertrag_erneuern(request):
+def vertrag_renew(request):
     """ Erstellt automatisch Buchungen basierend auf bestehenden Verträgen """
     vertraege = Vertrag.objects.filter(benutzer=request.user)
 
@@ -194,3 +194,41 @@ def konto_delete(request, pk):
         konto.delete()
         return redirect('konto_list')
     return render(request, 'core/konto_confirm_delete.html', {'konto': konto})
+
+@login_required
+def kategorie_list(request):
+    kategorien = Kategorie.objects.filter(benutzer=request.user)  # Nur eigene Kategorien anzeigen
+    return render(request, 'core/kategorie_list.html', {'kategorien': kategorien})
+
+@login_required
+def kategorie_create(request):
+    if request.method == 'POST':
+        form = KategorieForm(request.POST, user=request.user)
+        if form.is_valid():
+            kategorie = form.save(commit=False)
+            kategorie.benutzer = request.user  # Setze den aktuellen Benutzer
+            kategorie.save()
+            return redirect('kategorie_list')
+    else:
+        form = KategorieForm(user=request.user)
+    return render(request, 'core/kategorie_form.html', {'form': form})
+
+@login_required
+def kategorie_update(request, pk):
+    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)  # Nur eigene Kategorien abrufen
+    if request.method == 'POST':
+        form = KategorieForm(request.POST, instance=kategorie, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('kategorie_list')
+    else:
+        form = KategorieForm(instance=kategorie, user=request.user)
+    return render(request, 'core/kategorie_form.html', {'form': form})
+
+@login_required
+def kategorie_delete(request, pk):
+    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)  # Nur eigene Kategorien abrufen
+    if request.method == 'POST':
+        kategorie.delete()
+        return redirect('kategorie_list')
+    return render(request, 'core/kategorie_confirm_delete.html', {'kategorie': kategorie})

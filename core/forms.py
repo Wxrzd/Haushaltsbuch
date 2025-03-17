@@ -97,3 +97,14 @@ class VertragForm(forms.ModelForm):
             self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
             # Filtere nur Kategorien des eingeloggten Benutzers
             self.fields['kategorie'].queryset = Kategorie.objects.filter(benutzer=user)
+
+class KategorieForm(forms.ModelForm):
+    class Meta:
+        model = Kategorie
+        fields = ['kategoriebezeichnung']
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.instance.benutzer = user  # Benutzer automatisch setzen
+

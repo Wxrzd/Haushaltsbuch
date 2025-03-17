@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Kategorie löschen</h2>
+<p>Möchtest du die Kategorie wirklich löschen?</p>
+<p><strong>Bezeichnung:</strong> {{ kategorie.kategoriebezeichnung }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Löschen</button>
+    <a href="{% url 'kategorie_list' %}">Abbrechen</a>
+</form>
+{% endblock %}
