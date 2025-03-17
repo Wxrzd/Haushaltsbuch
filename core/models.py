@@ -102,6 +102,7 @@ class Vertrag(models.Model):
 
 
 class Buchung(models.Model):
+    
     BETRAGSTYPEN = (
         ('Einnahme', 'Einnahme'),
         ('Ausgabe', 'Ausgabe'),
