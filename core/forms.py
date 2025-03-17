@@ -41,4 +41,4 @@ class BuchungForm(forms.ModelForm):
 class KontoForm(forms.ModelForm):
     class Meta:
         model = Konto
-        fields = ['kontobezeichnung', 'kontotyp', 'benutzer']
+        fields = ['name', 'kontotyp', 'benutzer']

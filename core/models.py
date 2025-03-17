@@ -37,7 +37,7 @@ class Benutzer(AbstractBaseUser, PermissionsMixin):
 
 class Konto(models.Model):
     kontonummer = models.AutoField(primary_key=True)
-    kontobezeichnung = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
     kontotyp = models.CharField(max_length=50)
     benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
 
@@ -47,7 +47,7 @@ class Konto(models.Model):
         return einnahmen - ausgaben
 
     def __str__(self):
-        return self.kontobezeichnung
+        return self.name
 
 
 class Kategorie(models.Model):
