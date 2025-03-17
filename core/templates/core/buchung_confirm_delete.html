@@ -1,12 +1,16 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Buchung löschen{% endblock %}
-
 {% block content %}
-<h1>Bist du sicher, dass du die Buchung über {{ buchung.Betrag }} € löschen möchtest?</h1>
-<form method="post">
+<h2>Buchung löschen</h2>
+<p>Möchtest du die Buchung wirklich löschen?</p>
+<p><strong>Betrag:</strong> {{ buchung.betrag }} EUR</p>
+<p><strong>Buchungsart:</strong> {{ buchung.buchungsart }}</p>
+<p><strong>Konto:</strong> {{ buchung.konto.kontobezeichnung }}</p>
+<p><strong>Kategorie:</strong> {{ buchung.kategorie.kategoriebezeichnung }}</p>
+
+<form method="POST">
     {% csrf_token %}
     <button type="submit">Löschen</button>
+    <a href="{% url 'buchung_list' %}">Abbrechen</a>
 </form>
-<a href="{% url 'buchung_list' %}">Abbrechen</a>
 {% endblock %}

@@ -1,12 +1,14 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Konto löschen{% endblock %}
-
 {% block content %}
-<h1>Bist du sicher, dass du das Konto "{{ konto.Kontobezeichnung }}" löschen möchtest?</h1>
-<form method="post">
+<h2>Konto löschen</h2>
+<p>Möchtest du das Konto wirklich löschen?</p>
+<p><strong>Bezeichnung:</strong> {{ konto.kontobezeichnung }}</p>
+<p><strong>Typ:</strong> {{ konto.kontotyp }}</p>
+
+<form method="POST">
     {% csrf_token %}
     <button type="submit">Löschen</button>
+    <a href="{% url 'konto_list' %}">Abbrechen</a>
 </form>
-<a href="{% url 'konto_list' %}">Abbrechen</a>
 {% endblock %}

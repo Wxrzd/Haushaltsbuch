@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends 'core/base.html' %}
 
 {% block content %}
 <h2>Verträge</h2>
-<table border="1">
+<table>
     <thead>
         <tr>
             <th>Vertragsnummer</th>
@@ -18,18 +18,14 @@
     <tbody>
         {% for vertrag in vertraege %}
         <tr>
-            <td>{{ vertrag.VertragsNr }}</td>
-            <td>{{ vertrag.Name }}</td>
-            <td>{{ vertrag.Betrag }} €</td>
-            <td>{{ vertrag.Ablaufdatum }}</td>
-            <td>{{ vertrag.Intervall }}</td>
-            <td>{{ vertrag.Benutzername.Benutzername }}</td>
-            <td>{{ vertrag.KontoNr.KontoNr }}</td>
-            <td>{{ vertrag.KategorieNr.KategorieNr }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="8">Keine Verträge gefunden.</td>
+            <td>{{ vertrag.vertragsnummer }}</td>
+            <td>{{ vertrag.name }}</td>
+            <td>{{ vertrag.betrag }} EUR</td>
+            <td>{{ vertrag.ablaufdatum }}</td>
+            <td>{{ vertrag.intervall }}</td>
+            <td>{{ vertrag.benutzer.benutzername }}</td>
+            <td>{{ vertrag.konto.kontobezeichnung }}</td>
+            <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -1,13 +1,13 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Konto verwalten{% endblock %}
-
 {% block content %}
-<h1>Konto verwalten</h1>
-<form method="post">
+<h2>{% if form.instance.pk %}Konto bearbeiten{% else %}Neues Konto{% endif %}</h2>
+<form method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
+    <table>
+        {{ form.as_table }}
+    </table>
     <button type="submit">Speichern</button>
+    <a href="{% url 'konto_list' %}">Abbrechen</a>
 </form>
-<a href="{% url 'konto_list' %}">Abbrechen</a>
 {% endblock %}

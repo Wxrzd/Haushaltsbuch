@@ -1,8 +1,9 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Startseite{% endblock %}
-
 {% block content %}
-    <h1>Willkommen im Haushaltsbuch!</h1>
-    <p>Hier kannst du deine Finanzen verwalten.</p>
+<h2>Willkommen</h2>
+<p>Hier kannst du deine Finanzen verwalten.</p>
+<p><a href="{% url 'buchung_list' %}">Buchungen ansehen</a></p>
+<p><a href="{% url 'konto_list' %}">Konten verwalten</a></p>
+<p><a href="{% url 'vertraege_liste' %}">Verträge einsehen</a></p>
 {% endblock %}

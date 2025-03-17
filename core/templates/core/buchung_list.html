@@ -1,32 +1,37 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Buchungsübersicht{% endblock %}
-
 {% block content %}
-<h1>Buchungsübersicht</h1>
-<a href="{% url 'buchung_create' %}">+ Neue Buchung</a>
+<h2>Buchungen</h2>
 <table>
-    <tr>
-        <th>Buchungsdatum</th>
-        <th>Betrag</th>
-        <th>Art</th>
-        <th>Konto</th>
-        <th>Kategorie</th>
-        <th>Aktionen</th>
-    </tr>
-    {% for buchung in buchungen %}
-    <tr>
-        <td>{{ buchung.Buchungsdatum }}</td>
-        <td>{{ buchung.Betrag }} €</td>
-        <td>{{ buchung.Buchungsart }}</td>
-        <td>{{ buchung.KontoNr.Kontobezeichnung }}</td>
-        <td>{{ buchung.KategorieNr.Kategoriebezeichnung }}</td>
-        <td>
-            <a href="{% url 'buchung_update' buchung.BuchungsNr %}">Bearbeiten</a>
-            <a href="{% url 'buchung_delete' buchung.BuchungsNr %}">Löschen</a>
-        </td>
-    </tr>
-    {% endfor %}
+    <thead>
+        <tr>
+            <th>Buchungsnummer</th>
+            <th>Betrag</th>
+            <th>Buchungsart</th>
+            <th>Konto</th>
+            <th>Kategorie</th>
+            <th>Vertrag</th>
+            <th>Datum</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for buchung in buchungen %}
+        <tr>
+            <td>{{ buchung.buchungsnummer }}</td>
+            <td>{{ buchung.betrag }} EUR</td>
+            <td>{{ buchung.buchungsart }}</td>
+            <td>{{ buchung.konto.kontobezeichnung }}</td>
+            <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
+            <td>{% if buchung.vertrag %}{{ buchung.vertrag.name }}{% else %}-{% endif %}</td>
+            <td>{{ buchung.buchungsdatum }}</td>
+            <td>
+                <a href="{% url 'buchung_update' buchung.pk %}">Bearbeiten</a>
+                <a href="{% url 'buchung_delete' buchung.pk %}">Löschen</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+<a href="{% url 'buchung_create' %}">Neue Buchung hinzufügen</a>
 {% endblock %}
-
