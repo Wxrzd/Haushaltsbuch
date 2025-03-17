@@ -1,30 +1,32 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Buchungen{% endblock %}
+{% block title %}Buchungsübersicht{% endblock %}
 
 {% block content %}
-    <h1>Buchungen</h1>
-    <a href="{% url 'buchung_create' %}"><button>Neue Buchung hinzufügen</button></a>
-    <table>
-        <tr>
-            <th>Betrag</th>
-            <th>Konto</th>
-            <th>Kategorie</th>
-            <th>Datum</th>
-            <th>Beschreibung</th>
-            <th>Typ</th>
-        </tr>
-        {% for buchung in buchungen %}
-        <tr>
-            <td>{{ buchung.Betrag }} €</td>  <!-- Betrag statt betrag -->
-            <td>{{ buchung.KontoNr.name }}</td>  <!-- KontoNr statt konto -->
-            <td>{{ buchung.KategorieNr.name }}</td>  <!-- KategorieNr statt kategorie -->
-            <td>{{ buchung.Buchungsart }}</td>  <!-- Buchungsart (anstelle von Betragstyp) -->
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6">Keine Buchungen vorhanden.</td>
-        </tr>
-        {% endfor %}
-    </table>
+<h1>Buchungsübersicht</h1>
+<a href="{% url 'buchung_create' %}">+ Neue Buchung</a>
+<table>
+    <tr>
+        <th>Buchungsdatum</th>
+        <th>Betrag</th>
+        <th>Art</th>
+        <th>Konto</th>
+        <th>Kategorie</th>
+        <th>Aktionen</th>
+    </tr>
+    {% for buchung in buchungen %}
+    <tr>
+        <td>{{ buchung.Buchungsdatum }}</td>
+        <td>{{ buchung.Betrag }} €</td>
+        <td>{{ buchung.Buchungsart }}</td>
+        <td>{{ buchung.KontoNr.Kontobezeichnung }}</td>
+        <td>{{ buchung.KategorieNr.Kategoriebezeichnung }}</td>
+        <td>
+            <a href="{% url 'buchung_update' buchung.BuchungsNr %}">Bearbeiten</a>
+            <a href="{% url 'buchung_delete' buchung.BuchungsNr %}">Löschen</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}
+
