@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Verträge</h2>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Vertragsnummer</th>
+            <th>Name</th>
+            <th>Betrag</th>
+            <th>Ablaufdatum</th>
+            <th>Intervall</th>
+            <th>Benutzer</th>
+            <th>Konto</th>
+            <th>Kategorie</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vertrag in vertraege %}
+        <tr>
+            <td>{{ vertrag.VertragsNr }}</td>
+            <td>{{ vertrag.Name }}</td>
+            <td>{{ vertrag.Betrag }} €</td>
+            <td>{{ vertrag.Ablaufdatum }}</td>
+            <td>{{ vertrag.Intervall }}</td>
+            <td>{{ vertrag.Benutzername.Benutzername }}</td>
+            <td>{{ vertrag.KontoNr.KontoNr }}</td>
+            <td>{{ vertrag.KategorieNr.KategorieNr }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">Keine Verträge gefunden.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
