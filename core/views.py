@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
+from django.views.generic import ListView
 from django.contrib import messages
 from .models import Buchung, Konto, Vertrag
 from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
@@ -67,8 +68,6 @@ class VertragsListeView(ListView):
     model = Vertrag
     template_name = 'vertraege/vertrags_liste.html'  # Pfad zur HTML-Vorlage
     context_object_name = 'vertraege'  # Name der Variable im Template
-        form = BuchungForm(instance=buchung)
-    return render(request, 'core/buchung_form.html', {'form': form})
 
 def buchung_delete(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)
