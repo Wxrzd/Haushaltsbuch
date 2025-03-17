@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
-from .models import Buchung
-from .forms import BuchungForm
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Buchung, Konto
+from .forms import BuchungForm, KontoForm
 
 def home(request):
     return render(request, 'core/home.html')
@@ -20,3 +20,37 @@ def buchung_create(request):
         form = BuchungForm()
 
     return render(request, 'core/buchung_form.html', {'form': form})
+
+def konto_list(request):
+    konten = Konto.objects.all()
+    for konto in konten:
+        konto.Kontostand = konto.berechne_kontostand()  # Aktualisiere den Kontostand
+    return render(request, 'core/konto_list.html', {'konten': konten})
+
+def konto_create(request):
+    if request.method == 'POST':
+        form = KontoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('konto_list')
+    else:
+        form = KontoForm()
+    return render(request, 'core/konto_form.html', {'form': form})
+
+def konto_update(request, pk):
+    konto = get_object_or_404(Konto, pk=pk)
+    if request.method == 'POST':
+        form = KontoForm(request.POST, instance=konto)
+        if form.is_valid():
+            form.save()
+            return redirect('konto_list')
+    else:
+        form = KontoForm(instance=konto)
+    return render(request, 'core/konto_form.html', {'form': form})
+
+def konto_delete(request, pk):
+    konto = get_object_or_404(Konto, pk=pk)
+    if request.method == 'POST':
+        konto.delete()
+        return redirect('konto_list')
+    return render(request, 'core/konto_confirm_delete.html', {'konto': konto})

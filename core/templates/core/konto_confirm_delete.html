@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Konto löschen{% endblock %}
+
+{% block content %}
+<h1>Bist du sicher, dass du das Konto "{{ konto.Kontobezeichnung }}" löschen möchtest?</h1>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Löschen</button>
+</form>
+<a href="{% url 'konto_list' %}">Abbrechen</a>
+{% endblock %}

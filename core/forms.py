@@ -1,6 +1,6 @@
 from django import forms
 from datetime import date
-from .models import Buchung
+from .models import Buchung, Konto
 
 class BuchungForm(forms.ModelForm):
     Buchungsdatum = forms.DateField(
@@ -22,3 +22,8 @@ class BuchungForm(forms.ModelForm):
             'KategorieNr': forms.Select(),
             'KontoNr': forms.Select(),
         }
+
+class KontoForm(forms.ModelForm):
+    class Meta:
+        model = Konto
+        fields = ['Kontobezeichnung', 'Kontotyp', 'Benutzername']
