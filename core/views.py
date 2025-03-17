@@ -6,15 +6,17 @@ def home(request):
     return render(request, 'core/home.html')
 
 def buchung_list(request):
-    buchungen = Buchung.objects.all()
+    buchungen = Buchung.objects.select_related('KontoNr', 'VertragsNr', 'KategorieNr').all()
     return render(request, 'core/buchung_list.html', {'buchungen': buchungen})
 
 def buchung_create(request):
     if request.method == 'POST':
         form = BuchungForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('buchung_list')
+            buchung = form.save(commit=False)
+            buchung.save()
+            return redirect('buchung_list')  # Zur Buchungsliste weiterleiten
     else:
         form = BuchungForm()
+
     return render(request, 'core/buchung_form.html', {'form': form})

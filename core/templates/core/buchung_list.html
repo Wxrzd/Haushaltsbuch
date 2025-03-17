@@ -5,26 +5,32 @@
 {% block content %}
     <h1>Buchungen</h1>
     <a href="{% url 'buchung_create' %}"><button>Neue Buchung hinzufügen</button></a>
-    <table>
-        <tr>
-            <th>Betrag</th>
-            <th>Konto</th>
-            <th>Kategorie</th>
-            <th>Datum</th>
-            <th>Beschreibung</th>
-            <th>Typ</th>
-        </tr>
-        {% for buchung in buchungen %}
-        <tr>
-            <td>{{ buchung.Betrag }} €</td>  <!-- Betrag statt betrag -->
-            <td>{{ buchung.KontoNr.name }}</td>  <!-- KontoNr statt konto -->
-            <td>{{ buchung.KategorieNr.name }}</td>  <!-- KategorieNr statt kategorie -->
-            <td>{{ buchung.Buchungsart }}</td>  <!-- Buchungsart (anstelle von Betragstyp) -->
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6">Keine Buchungen vorhanden.</td>
-        </tr>
-        {% endfor %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Betrag</th>
+                <th>Datum</th>
+                <th>Konto</th>
+                <th>Kategorie</th>
+                <th>Typ</th>
+                <th>Vertrag</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for buchung in buchungen %}
+            <tr>
+                <td>{{ buchung.Betrag }} €</td>
+                <td>{{ buchung.Buchungsdatum }}</td>
+                <td>{{ buchung.KontoNr.Kontobezeichnung }}</td>  <!-- Zeigt den Namen statt der ID -->
+                <td>{{ buchung.KategorieNr.Kategoriebezeichnung }}</td>  <!-- Zeigt den Namen statt der ID -->
+                <td>{{ buchung.Buchungsart }}</td>  <!-- Korrekte Anzeige der Buchungsart -->
+                <td>{% if buchung.VertragsNr %}{{ buchung.VertragsNr.Name }}{% else %}-{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">Keine Buchungen vorhanden.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 {% endblock %}

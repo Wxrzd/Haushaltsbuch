@@ -5,6 +5,9 @@ class Nutzer(models.Model):
     Email = models.CharField(max_length=100, db_column='Email')
     Passwort = models.CharField(max_length=100, db_column='Passwort')
 
+    def __str__(self):
+        return self.Benutzername
+
 class Konto(models.Model):
     KontoNr = models.AutoField(primary_key=True)  
     Kontobezeichnung = models.CharField(max_length=100, db_column='Kontobezeichnung')
@@ -26,6 +29,9 @@ class Kategorie(models.Model):
     Kategoriebezeichnung = models.CharField(max_length=100, db_column='Kategoriebezeichnung')
     Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, db_column='Benutzername')
 
+    def __str__(self):
+        return self.Kategoriebezeichnung
+
 class Vertrag(models.Model):
     class Meta:
         db_table = "Vertrag"  # Setzt den exakten Tabellennamen in MySQL
@@ -39,6 +45,9 @@ class Vertrag(models.Model):
     KontoNr = models.ForeignKey(Konto, on_delete=models.CASCADE, db_column='KontoNr')
     KategorieNr = models.ForeignKey('Kategorie', on_delete=models.CASCADE, db_column='KategorieNr')
 
+    def __str__(self):
+        return self.Name
+
 class Buchung(models.Model):
     class Meta:
         db_table = "Buchung"  # Setzt den exakten Tabellennamen in MySQL
@@ -50,6 +59,7 @@ class Buchung(models.Model):
     
     BuchungsNr = models.AutoField(primary_key=True)
     Betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    Buchungsdatum = models.DateField()
     Buchungsart = models.CharField(max_length=50)
 
     KontoNr = models.ForeignKey(Konto, on_delete=models.CASCADE, db_column='KontoNr')
