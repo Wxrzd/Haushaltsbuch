@@ -1,7 +1,7 @@
 from django import forms
 from datetime import date
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Buchung, Benutzer, Konto
+from .models import Buchung, Benutzer, Konto, Kategorie
 
 class RegistrierungsForm(UserCreationForm):
     class Meta:
@@ -37,6 +37,14 @@ class BuchungForm(forms.ModelForm):
             'kategorie': forms.Select(),
             'konto': forms.Select(),
         }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super(BuchungForm, self).__init__(*args, **kwargs)
+        if user:
+            # Zeige nur Konten des aktuell eingeloggten Benutzers an
+            self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
+            # Zeige nur Kategorien des aktuell eingeloggten Benutzers an
+            self.fields['kategorie'].queryset = Kategorie.objects.filter(benutzer=user)
 
 class KontoForm(forms.ModelForm):
     class Meta:

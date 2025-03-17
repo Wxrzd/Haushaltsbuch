@@ -37,32 +37,41 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+@login_required
 def buchung_list(request):
-    buchungen = Buchung.objects.select_related('konto', 'vertrag', 'kategorie').all()
+    # Hole nur die Buchungen des aktuell eingeloggten Benutzers
+    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie').all()
     return render(request, 'core/buchung_list.html', {'buchungen': buchungen})
 
+
+@login_required
 def buchung_create(request):
     if request.method == 'POST':
-        form = BuchungForm(request.POST)
+        form = BuchungForm(request.POST, user=request.user)  # Übergabe des aktuellen Benutzers
         if form.is_valid():
             buchung = form.save(commit=False)
             buchung.save()
-            return redirect('buchung_list')  # Zur Buchungsliste weiterleiten
+            return redirect('buchung_list')  # Weiterleitung zur Buchungsliste
     else:
-        form = BuchungForm()
+        form = BuchungForm(user=request.user)  # Übergabe des aktuellen Benutzers
 
     return render(request, 'core/buchung_form.html', {'form': form})
 
+
+@login_required
 def buchung_update(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)
     if request.method == 'POST':
-        form = BuchungForm(request.POST, instance=buchung)
+        form = BuchungForm(request.POST, instance=buchung, user=request.user)  # Übergabe des aktuellen Benutzers
         if form.is_valid():
             form.save()
             return redirect('buchung_list')
     else:
-        form = BuchungForm(instance=buchung)
+        form = BuchungForm(instance=buchung, user=request.user)  # Übergabe des aktuellen Benutzers
+
     return render(request, 'core/buchung_form.html', {'form': form})
+
+
 
 class VertragsListeView(ListView):
     model = Vertrag
@@ -76,10 +85,12 @@ def buchung_delete(request, pk):
         return redirect('buchung_list')
     return render(request, 'core/buchung_confirm_delete.html', {'buchung': buchung})
 
+@login_required
 def konto_list(request):
-    konten = Konto.objects.all()
+    # Hole nur die Konten des aktuell eingeloggten Benutzers
+    konten = Konto.objects.filter(benutzer=request.user)
     for konto in konten:
-        konto.kontostand = konto.berechne_kontostand()  # Aktualisiere den Kontostand
+        konto.kontostand = konto.berechne_kontostand()  # Berechne den Kontostand für jedes Konto
     return render(request, 'core/konto_list.html', {'konten': konten})
 
 @login_required

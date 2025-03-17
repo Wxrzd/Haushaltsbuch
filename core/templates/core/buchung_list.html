@@ -19,7 +19,7 @@
         <tr>
             <td>{{ buchung.betrag }} €</td>
             <td>{{ buchung.buchungsart }}</td>
-            <td>{{ buchung.konto.kontobezeichnung }}</td>
+            <td>{{ buchung.konto.name }}</td>
             <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
             <td>{% if buchung.vertrag %}{{ buchung.vertrag.name }}{% else %}-{% endif %}</td>
             <td>{{ buchung.buchungsdatum }}</td>
