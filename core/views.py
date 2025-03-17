@@ -87,16 +87,15 @@ def vertrag_list(request):
 
 @login_required
 def vertrag_create(request):
-    """ Erstellt einen neuen Vertrag """
-    if request.method == "POST":
-        form = VertragForm(request.POST)
+    if request.method == 'POST':
+        form = VertragForm(request.POST, user=request.user)  # Benutzer übergeben
         if form.is_valid():
             vertrag = form.save(commit=False)
-            vertrag.benutzer = request.user  # Automatische Benutzerzuweisung
+            vertrag.benutzer = request.user  # Setze den Benutzer als Eigentümer des Vertrags
             vertrag.save()
-            return redirect('vertrag_list')  # Weiterleitung zur Vertragsliste
+            return redirect('vertraege_liste')  # Zur Vertragsliste weiterleiten
     else:
-        form = VertragForm()
+        form = VertragForm(user=request.user)  # Benutzer übergeben
 
     return render(request, 'core/vertrag_form.html', {'form': form})
 

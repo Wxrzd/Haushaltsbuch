@@ -34,6 +34,16 @@ class BuchungForm(forms.ModelForm):
             'kategorie': forms.Select(),
             'konto': forms.Select(),
         }
+    
+    def __init__(self, *args, user=None, **kwargs):
+        super(BuchungForm, self).__init__(*args, **kwargs)
+        if user:
+            # Zeige nur Konten des aktuell eingeloggten Benutzers an
+            self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
+            # Zeige nur Kategorien des aktuell eingeloggten Benutzers an
+            self.fields['kategorie'].queryset = Kategorie.objects.filter(benutzer=user)
+            # Zeige nur Verträge des aktuell eingeloggten Benutzers an
+            self.fields['vertrag'].queryset = Vertrag.objects.filter(benutzer=user)
 
 class KontoForm(forms.ModelForm):
     class Meta:
@@ -65,3 +75,25 @@ class VertragForm(forms.ModelForm):
                 ('jährlich', 'Jährlich'),
             ]),
         }
+    
+class VertragForm(forms.ModelForm):
+    class Meta:
+        model = Vertrag
+        fields = ['name', 'betrag', 'ablaufdatum', 'intervall', 'konto', 'kategorie']
+        widgets = {
+            'ablaufdatum': forms.DateInput(attrs={'type': 'date'}),  # Kalenderfunktion
+            'intervall': forms.Select(choices=[
+                ('täglich', 'Täglich'),
+                ('wöchentlich', 'Wöchentlich'),
+                ('monatlich', 'Monatlich'),
+                ('jährlich', 'Jährlich'),
+            ]),
+        }
+    
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)  # KORREKT für Python 3
+        if user:
+            # Filtere nur Konten des eingeloggten Benutzers
+            self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
+            # Filtere nur Kategorien des eingeloggten Benutzers
+            self.fields['kategorie'].queryset = Kategorie.objects.filter(benutzer=user)
