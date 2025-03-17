@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.views.generic import ListView
 from django.contrib import messages
-from .models import Buchung, Konto, Vertrag
+from .models import Buchung, Konto, Vertrag, Benutzer
 from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
 
 def home(request):
@@ -32,13 +32,12 @@ def login_view(request):
     form = LoginForm()
     return render(request, 'core/login.html', {'form': form})
 
-
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 def buchung_list(request):
-    buchungen = Buchung.objects.select_related('KontoNr', 'VertragsNr', 'KategorieNr').all()
+    buchungen = Buchung.objects.select_related('konto', 'vertrag', 'kategorie').all()
     return render(request, 'core/buchung_list.html', {'buchungen': buchungen})
 
 def buchung_create(request):
@@ -61,7 +60,7 @@ def buchung_update(request, pk):
             form.save()
             return redirect('buchung_list')
     else:
-        form = BuchungForm()
+        form = BuchungForm(instance=buchung)
     return render(request, 'core/buchung_form.html', {'form': form})
 
 class VertragsListeView(ListView):
@@ -79,7 +78,7 @@ def buchung_delete(request, pk):
 def konto_list(request):
     konten = Konto.objects.all()
     for konto in konten:
-        konto.Kontostand = konto.berechne_kontostand()  # Aktualisiere den Kontostand
+        konto.kontostand = konto.berechne_kontostand()  # Aktualisiere den Kontostand
     return render(request, 'core/konto_list.html', {'konten': konten})
 
 def konto_create(request):

@@ -1,16 +1,16 @@
 from django import forms
 from datetime import date
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Buchung, Nutzer, Konto
+from .models import Buchung, Benutzer, Konto
 
 class RegistrierungsForm(UserCreationForm):
     class Meta:
-        model = Nutzer
-        fields = ['EMail', 'Benutzername', 'password1', 'password2']
+        model = Benutzer
+        fields = ['email', 'benutzername', 'password1', 'password2']
     
-    def clean_EMail(self):
-        email = self.cleaned_data.get('EMail')
-        if Nutzer.objects.filter(EMail=email).exists():
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Benutzer.objects.filter(email=email).exists():
             raise forms.ValidationError("Diese E-Mail-Adresse wird bereits verwendet.")
         return email
 
@@ -18,7 +18,7 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Benutzername")
 
 class BuchungForm(forms.ModelForm):
-    Buchungsdatum = forms.DateField(
+    buchungsdatum = forms.DateField(
         widget=forms.DateInput(attrs={
             'type': 'date',
             'class': 'datepicker',
@@ -29,16 +29,16 @@ class BuchungForm(forms.ModelForm):
 
     class Meta:
         model = Buchung
-        fields = ['Betrag', 'Buchungsart', 'KontoNr', 'VertragsNr', 'KategorieNr', 'Buchungsdatum']  # Datum ist jetzt verpflichtend
+        fields = ['betrag', 'buchungsart', 'konto', 'vertrag', 'kategorie', 'buchungsdatum']
         
         widgets = {
-            'Buchungsart': forms.Select(choices=[('Einnahme', 'Einnahme'), ('Ausgabe', 'Ausgabe')]),
-            'VertragsNr': forms.Select(),  # Falls optional, Dropdown lassen
-            'KategorieNr': forms.Select(),
-            'KontoNr': forms.Select(),
+            'buchungsart': forms.Select(choices=[('Einnahme', 'Einnahme'), ('Ausgabe', 'Ausgabe')]),
+            'vertrag': forms.Select(),  # Falls optional, Dropdown lassen
+            'kategorie': forms.Select(),
+            'konto': forms.Select(),
         }
 
 class KontoForm(forms.ModelForm):
     class Meta:
         model = Konto
-        fields = ['Kontobezeichnung', 'Kontotyp', 'Benutzername']
+        fields = ['kontobezeichnung', 'kontotyp', 'benutzer']
