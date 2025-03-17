@@ -3,10 +3,8 @@ from django.contrib.auth import login, logout
 from django.views.generic import ListView
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.utils.timezone import now
 from .models import Buchung, Konto, Vertrag, Benutzer
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm, VertragForm
-
+from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
 
 def home(request):
     return render(request, 'core/home.html')

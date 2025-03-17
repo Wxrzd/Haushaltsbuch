@@ -5,20 +5,18 @@
 <table>
     <thead>
         <tr>
-            <th>Kontonummer</th>
             <th>Bezeichnung</th>
             <th>Typ</th>
-            <th>Benutzer</th>
+            <th>Kontostand</th>
             <th>Aktionen</th>
         </tr>
     </thead>
     <tbody>
         {% for konto in konten %}
         <tr>
-            <td>{{ konto.kontonummer }}</td>
             <td>{{ konto.name }}</td>
             <td>{{ konto.kontotyp }}</td>
-            <td>{{ konto.benutzer.benutzername }}</td>
+            <td>{{ konto.kontostand }}</td>
             <td>
                 <a href="{% url 'konto_update' konto.pk %}">Bearbeiten</a>
                 <a href="{% url 'konto_delete' konto.pk %}">Löschen</a>

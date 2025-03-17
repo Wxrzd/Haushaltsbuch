@@ -50,7 +50,6 @@ class Konto(models.Model):
     def __str__(self):
         return self.name
 
-
 class Kategorie(models.Model):
     kategorienummer = models.AutoField(primary_key=True)
     kategoriebezeichnung = models.CharField(max_length=100)
@@ -58,7 +57,6 @@ class Kategorie(models.Model):
 
     def __str__(self):
         return self.kategoriebezeichnung
-
 
 class Vertrag(models.Model):
     vertragsnummer = models.AutoField(primary_key=True)
