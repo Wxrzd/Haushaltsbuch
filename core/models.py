@@ -21,6 +21,7 @@ class NutzerManager(BaseUserManager):
 class Nutzer(AbstractBaseUser, PermissionsMixin):
     Benutzername = models.CharField(max_length=150, unique=True)
     EMail = models.EmailField(unique=True)
+    Passwort = models.CharField(max_length=128)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
