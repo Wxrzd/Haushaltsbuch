@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from datetime import datetime, timedelta
 
 
 class BenutzerManager(BaseUserManager):
@@ -72,6 +73,34 @@ class Vertrag(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.benutzer})"
+
+    def erstelle_buchung(self):
+        """Erstellt eine Buchung basierend auf dem Vertragsintervall"""
+        if self.intervall == "täglich":
+            naechstes_datum = self.ablaufdatum + timedelta(days=1)
+        elif self.intervall == "wöchentlich":
+            naechstes_datum = self.ablaufdatum + timedelta(weeks=1)
+        elif self.intervall == "monatlich":
+            # Logik für Monate ohne `relativedelta`
+            month = self.ablaufdatum.month + 1
+            year = self.ablaufdatum.year
+            if month > 12:
+                month = 1
+                year += 1
+            naechstes_datum = self.ablaufdatum.replace(month=month, year=year)
+        elif self.intervall == "jährlich":
+            naechstes_datum = self.ablaufdatum.replace(year=self.ablaufdatum.year + 1)
+        else:
+            return  # Keine automatische Buchung für unbekannte Intervalle
+
+        Buchung.objects.create(
+            betrag=self.betrag,
+            buchungsdatum=naechstes_datum,
+            buchungsart="Ausgabe",  # Verträge sind normalerweise Ausgaben
+            konto=self.konto,
+            vertrag=self,
+            kategorie=self.kategorie
+        )
 
 
 class Buchung(models.Model):

@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h2>Vertrag löschen</h2>
+<p>Möchtest du den Vertrag "{{ vertrag.name }}" wirklich löschen?</p>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Ja, löschen</button>
+</form>
+<a href="{% url 'vertrag_list' %}">Nein, zurück zur Übersicht</a>
+{% endblock %}

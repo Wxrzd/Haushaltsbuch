@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h2>Vertragsübersicht</h2>
+<a href="{% url 'vertrag_create' %}">Neuen Vertrag hinzufügen</a>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Betrag</th>
+        <th>Ablaufdatum</th>
+        <th>Intervall</th>
+        <th>Aktionen</th>
+    </tr>
+    {% for vertrag in vertraege %}
+    <tr>
+        <td>{{ vertrag.id }}</td>
+        <td>{{ vertrag.name }}</td>
+        <td>{{ vertrag.betrag }}</td>
+        <td>{{ vertrag.ablaufdatum }}</td>
+        <td>{{ vertrag.intervall }}</td>
+        <td>
+            <a href="{% url 'vertrag_update' vertrag.id %}">Bearbeiten</a> |
+            <a href="{% url 'vertrag_delete' vertrag.id %}">Löschen</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">Keine Verträge vorhanden.</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

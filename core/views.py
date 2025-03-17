@@ -3,8 +3,10 @@ from django.contrib.auth import login, logout
 from django.views.generic import ListView
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
 from .models import Buchung, Konto, Vertrag, Benutzer
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
+from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm, VertragForm
+
 
 def home(request):
     return render(request, 'core/home.html')
@@ -64,10 +66,45 @@ def buchung_update(request, pk):
         form = BuchungForm(instance=buchung)
     return render(request, 'core/buchung_form.html', {'form': form})
 
-class VertragsListeView(ListView):
-    model = Vertrag
-    template_name = 'vertraege/vertrags_liste.html'  # Pfad zur HTML-Vorlage
-    context_object_name = 'vertraege'  # Name der Variable im Template
+def vertrag_list(request):
+    # Alle gültigen Verträge abrufen
+    vertraege = Vertrag.objects.filter(ablaufdatum__gte=now(), benutzer=request.user)
+
+    return render(request, "core/vertrag_list.html", {"vertraege": vertraege})
+
+@login_required
+def vertrag_create(request):
+    if request.method == "POST":
+        form = VertragForm(request.POST)
+        if form.is_valid():
+            vertrag = form.save(commit=False)
+            vertrag.benutzer = request.user  # Automatische Benutzerzuweisung
+            vertrag.save()
+            return redirect('vertrag_list')  # Weiterleitung zur Vertragsliste
+    else:
+        form = VertragForm()
+
+    return render(request, 'core/vertrag_form.html', {'form': form})
+
+def vertrag_update(request, pk):
+    """Bearbeitet einen bestehenden Vertrag."""
+    vertrag = get_object_or_404(Vertrag, pk=pk)
+    if request.method == "POST":
+        form = VertragForm(request.POST, instance=vertrag)
+        if form.is_valid():
+            form.save()
+            return redirect('vertrag_list')
+    else:
+        form = VertragForm(instance=vertrag)
+    return render(request, 'core/vertrag_form.html', {'form': form})
+
+def vertrag_delete(request, pk):
+    """Löscht einen Vertrag nach Bestätigung."""
+    vertrag = get_object_or_404(Vertrag, pk=pk)
+    if request.method == "POST":
+        vertrag.delete()
+        return redirect('vertrag_list')
+    return render(request, 'core/vertrag_confirm_delete.html', {'vertrag': vertrag})
 
 def buchung_delete(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)

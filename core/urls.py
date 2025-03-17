@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import home, buchung_list, buchung_create, buchung_update, buchung_delete, konto_list, konto_create, konto_update, konto_delete, registrierung_view, login_view, logout_view, VertragsListeView
+from .views import home, buchung_list, buchung_create, buchung_update, buchung_delete, konto_list, konto_create, konto_update, konto_delete, registrierung_view, login_view, logout_view, vertrag_list, vertrag_create, vertrag_update, vertrag_delete
 
 urlpatterns = [
     path('', home, name='home'),
@@ -8,7 +8,10 @@ urlpatterns = [
     path('registrierung/', registrierung_view, name='registrierung'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
-    path('vertraege/', VertragsListeView.as_view(), name='vertraege_liste'),
+    path('vertraege/', vertrag_list, name='vertrag_list'),
+    path('vertraege/neu/', vertrag_create, name='vertrag_create'),
+    path('vertraege/<int:pk>/bearbeiten/', vertrag_update, name='vertrag_update'),
+    path('vertraege/<int:pk>/loeschen/', vertrag_delete, name='vertrag_delete'),
     path('buchungen/bearbeiten/<int:pk>/', buchung_update, name='buchung_update'),
     path('buchungen/loeschen/<int:pk>/', buchung_delete, name='buchung_delete'),
     path('konten/', konto_list, name='konto_list'),
