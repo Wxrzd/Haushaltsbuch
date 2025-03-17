@@ -1,6 +1,21 @@
 from django import forms
 from datetime import date
-from .models import Buchung, Konto
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import Buchung, Nutzer, Konto
+
+class RegistrierungsForm(UserCreationForm):
+    class Meta:
+        model = Nutzer
+        fields = ['EMail', 'Benutzername', 'password1', 'password2']
+    
+    def clean_EMail(self):
+        email = self.cleaned_data.get('EMail')
+        if Nutzer.objects.filter(EMail=email).exists():
+            raise forms.ValidationError("Diese E-Mail-Adresse wird bereits verwendet.")
+        return email
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(label="Benutzername")
 
 class BuchungForm(forms.ModelForm):
     Buchungsdatum = forms.DateField(

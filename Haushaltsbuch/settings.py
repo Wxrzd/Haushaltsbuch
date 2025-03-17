@@ -93,6 +93,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'core.Nutzer'  # Falls deine Nutzer-Klasse in der App 'core' liegt
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

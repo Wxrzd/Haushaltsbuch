@@ -1,9 +1,40 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Buchung, Konto
-from .forms import BuchungForm, KontoForm
+from django.contrib.auth import login, logout
+from django.contrib import messages
+from .models import Buchung, Konto, Vertrag
+from .forms import BuchungForm, KontoForm, RegistrierungsForm, LoginForm
 
 def home(request):
     return render(request, 'core/home.html')
+
+def registrierung_view(request):
+    if request.method == 'POST':
+        form = RegistrierungsForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = RegistrierungsForm()
+    return render(request, 'core/registrierung.html', {'form': form})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, "Ungültiger Benutzername oder falsches Passwort.")
+    
+    form = LoginForm()
+    return render(request, 'core/login.html', {'form': form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 def buchung_list(request):
     buchungen = Buchung.objects.select_related('KontoNr', 'VertragsNr', 'KategorieNr').all()
@@ -29,6 +60,13 @@ def buchung_update(request, pk):
             form.save()
             return redirect('buchung_list')
     else:
+        form = BuchungForm()
+    return render(request, 'core/buchung_form.html', {'form': form})
+
+class VertragsListeView(ListView):
+    model = Vertrag
+    template_name = 'vertraege/vertrags_liste.html'  # Pfad zur HTML-Vorlage
+    context_object_name = 'vertraege'  # Name der Variable im Template
         form = BuchungForm(instance=buchung)
     return render(request, 'core/buchung_form.html', {'form': form})
 

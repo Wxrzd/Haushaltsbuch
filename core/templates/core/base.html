@@ -15,6 +15,13 @@
                 <li><a href="/konten">Konten</a></li>
                 <li><a href="/buchungen">Buchungen</a></li>
                 <li><a href="/stats">Statistik</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="/logout">Logout</a></li>
+                    <li>Willkommen, {{ user.Benutzername }}</li>
+                {% else %}
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/registrierung">Registrierung</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>

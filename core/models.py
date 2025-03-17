@@ -1,9 +1,42 @@
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
-class Nutzer(models.Model):
-    Benutzername = models.CharField(max_length=100, primary_key=True, db_column='Benutzername')
-    Email = models.CharField(max_length=100, db_column='Email')
-    Passwort = models.CharField(max_length=100, db_column='Passwort')
+
+class NutzerManager(BaseUserManager):
+    def create_user(self, Benutzername, EMail, Passwort=None, **extra_fields):
+        if not EMail:
+            raise ValueError('Die E-Mail-Adresse muss angegeben werden')
+        email = self.normalize_email(EMail)
+        user = self.model(Benutzername=Benutzername, EMail=email, **extra_fields)
+        user.set_password(Passwort)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, Benutzername, EMail, Passwort=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(Benutzername, EMail, Passwort, **extra_fields)
+
+
+class Nutzer(AbstractBaseUser, PermissionsMixin):
+    Benutzername = models.CharField(max_length=150, unique=True, primary_key=True)
+    EMail = models.EmailField(unique=True)
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = NutzerManager()
+
+    USERNAME_FIELD = 'Benutzername'
+    EMAIL_FIELD = 'EMail'
+    REQUIRED_FIELDS = ['EMail']
+
+    class Meta:
+        db_table = 'Nutzer'
+
+    def __str__(self):
+        return self.Benutzername
+
 
     class Meta:
         db_table = 'Nutzer'
@@ -75,6 +108,22 @@ class Buchung(models.Model):
 
     def __str__(self):
         return f"Buchung {self.BuchungsNr}: {self.Betrag} EUR, {self.Buchungsart}"
+
+
+class Vertrag(models.Model):
+    VertragsNr = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    Betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    Ablaufdatum = models.DateField()
+    Intervall = models.CharField(max_length=50)  # z. B. "monatlich", "jährlich"
+
+    # Fremdschlüssel zu Nutzer, Konto und Kategorie
+    Benutzername = models.ForeignKey(Nutzer, on_delete=models.CASCADE, to_field='Benutzername')
+    KontoNr = models.ForeignKey('Konto', on_delete=models.CASCADE, to_field='KontoNr')
+    KategorieNr = models.ForeignKey('Kategorie', on_delete=models.CASCADE, to_field='KategorieNr')
+
+    def __str__(self):
+        return f"{self.Name} ({self.Benutzername})"
     
 
 
