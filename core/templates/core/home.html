@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'core/base.html' %}
 {% load static %}
 
 {% block title %}
@@ -19,19 +19,20 @@
       aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div
-      class="collapse navbar-collapse"
-      id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        <!-- Link zu weiteren Unterseiten -->
+        <!-- Navigation zu verschiedenen Seiten -->
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="#">Start</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Buchungen</a>
+          <a class="nav-link" href="/buchungen/">Buchungen</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Kategorien</a>
+          <a class="nav-link" href="/kategorien/">Kategorien</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/konten/">Konten</a>
         </li>
         <!-- Logout-Button -->
         <li class="nav-item">
@@ -51,7 +52,7 @@
 {% block content %}
 <h1 class="mb-4">Überblick über deine letzten Buchungen</h1>
 
-<!-- Beispiel: Tabelle mit den letzten Buchungen -->
+<!-- Buchungstabelle mit zusätzlichen Spalten für Konto, Buchungsart und Vertrag -->
 <div class="table-responsive">
   <table class="table table-striped align-middle">
     <thead>
@@ -60,6 +61,9 @@
         <th scope="col">Kategorie</th>
         <th scope="col">Beschreibung</th>
         <th scope="col">Betrag</th>
+        <th scope="col">Konto</th>
+        <th scope="col">Buchungsart</th>
+        <th scope="col">Vertrag</th>
       </tr>
     </thead>
     <tbody>
@@ -70,14 +74,18 @@
             <td>{{ buchung.kategorie }}</td>
             <td>{{ buchung.beschreibung }}</td>
             <td>{{ buchung.betrag }} €</td>
+            <td>{{ buchung.konto }}</td>
+            <td>{{ buchung.buchungsart }}</td>
+            <td>{{ buchung.vertrag }}</td>
           </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="4" class="text-center">Keine Buchungen vorhanden.</td>
+          <td colspan="7" class="text-center">Keine Buchungen vorhanden.</td>
         </tr>
       {% endif %}
     </tbody>
   </table>
 </div>
 {% endblock content %}
+

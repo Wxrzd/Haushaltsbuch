@@ -24,7 +24,7 @@ def registrierung_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('buchung_list')  # Falls bereits eingeloggt, weiterleiten
+        return redirect('home')  # Falls bereits eingeloggt, weiterleiten
 
     form = AuthenticationForm(data=request.POST or None)
     
@@ -33,7 +33,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('buchung_list')  # Erfolgreicher Login -> Weiterleitung
+            return redirect('home')  # Erfolgreicher Login -> Weiterleitung
         else:
             form.add_error(None, "Benutzername oder Passwort ist falsch.")  # Allgemeine Fehlermeldung
 
