@@ -1,9 +1,83 @@
-{% extends 'core/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Haushaltsbuch - Übersichtsseite
+{% endblock title %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Haushaltsbuch</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div
+      class="collapse navbar-collapse"
+      id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <!-- Link zu weiteren Unterseiten -->
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Start</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Buchungen</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Kategorien</a>
+        </li>
+        <!-- Logout-Button -->
+        <li class="nav-item">
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="btn nav-link" type="submit" style="border:none; background:none;">
+              Logout
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock header %}
 
 {% block content %}
-<h2>Willkommen</h2>
-<p>Hier kannst du deine Finanzen verwalten.</p>
-<p><a href="{% url 'buchung_list' %}">Buchungen ansehen</a></p>
-<p><a href="{% url 'konto_list' %}">Konten verwalten</a></p>
-<p><a href="{% url 'vertrag_list' %}">Verträge einsehen</a></p>
-{% endblock %}
+<h1 class="mb-4">Überblick über deine letzten Buchungen</h1>
+
+<!-- Beispiel: Tabelle mit den letzten Buchungen -->
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Datum</th>
+        <th scope="col">Kategorie</th>
+        <th scope="col">Beschreibung</th>
+        <th scope="col">Betrag</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if buchungen %}
+        {% for buchung in buchungen %}
+          <tr>
+            <td>{{ buchung.datum|date:"d.m.Y" }}</td>
+            <td>{{ buchung.kategorie }}</td>
+            <td>{{ buchung.beschreibung }}</td>
+            <td>{{ buchung.betrag }} €</td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="4" class="text-center">Keine Buchungen vorhanden.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}

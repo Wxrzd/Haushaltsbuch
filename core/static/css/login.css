@@ -1,0 +1,98 @@
+/* 1) Grundlegende Layout-Einstellungen */
+* {
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    /* Optionaler Farbverlauf im Hintergrund */
+    background: linear-gradient(135deg, #f0f0f0 0%, #d9e5f6 100%);
+}
+
+/* 2) Container für den Login-Bereich */
+.login-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    min-width: 300px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* 3) Überschrift */
+.login-container h2 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* 4) Formular-Layout */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+label {
+    font-size: 0.9rem;
+    text-align: left;
+    margin-bottom: -5px; /* damit das Label näher an das Input-Feld rückt */
+}
+input {
+    padding: 0.75rem;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+}
+input:focus {
+    outline: none;
+    border-color: #007BFF;
+}
+
+/* 5) Button-Styles */
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 6) Registrierungslink */
+p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+a {
+    text-decoration: none;
+    color: #007BFF;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* 7) Fehlermeldungen */
+.error-message {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: -5px;
+}
+
+/* 8) Responsivität für sehr kleine Geräte */
+@media (max-width: 360px) {
+    .login-container {
+        width: 90%;
+    }
+}
