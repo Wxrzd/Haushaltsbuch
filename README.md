@@ -23,7 +23,7 @@ Projekt: Entwicklung eines digitalen Haushaltsbuches zur Überwachung seiner Ein
 ```
 
 **Bei Äderungen am Datenmodell**
-Vor dem Starten der Applikation Migrieren
+Vor dem Starten der Applikation muss dann migriert werden mit folgenden Befehlen:
  ```sh
    python manage.py makemigrations core
    python manage.py migrate
