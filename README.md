@@ -17,9 +17,16 @@ Projekt: Entwicklung eines digitalen Haushaltsbuches zur Überwachung seiner Ein
    DB_PORT=<your-database-port>
    DB_NAME=<your-database-name>
    ```
-3. **Run the applicatioin**
+3. **Run the application**
  ```sh
    python manage.py runserver
+```
+
+**Bei Äderungen am Datenmodell**
+Vor dem Starten der Applikation Migrieren
+ ```sh
+   python manage.py makemigrations core
+   python manage.py migrate
 ```
 
 ## Hinweise
