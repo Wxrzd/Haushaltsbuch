@@ -1,10 +1,93 @@
-/* Beispiel für eine eigene Hintergrundfarbe der Navbar */
-.navbar.bg-light {
-    background-color: #f7f7f7 !important;
-  }
-  
-  /* Farbe oder Margin für das Card-Layout auf der Login-Seite anpassen */
-  .card {
-    border-radius: 8px;
-  }
-  
+/* Dashboard Styling angepasst für die neue Base Seite */
+body {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #1e1e1e;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+}
+
+.sidebar h3 {
+  text-align: center;
+  color: #ffffff;
+}
+
+.sidebar .nav-link {
+  font-size: 1.1rem;
+  color: #bbb;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.sidebar .btn-danger {
+  margin-top: 30px;
+  width: 100%;
+}
+
+/* Main Content Bereich */
+.container-fluid {
+  margin-left: 270px;
+  padding: 20px;
+}
+
+.card {
+  background-color: #1e1e1e;
+  border: none;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.card h2, .card h3, .card h4, .card h5 {
+  color: #ffffff;
+}
+
+.list-group-item {
+  border: none;
+  color: #ddd;
+}
+
+.list-group-item span {
+  float: right;
+}
+
+/* Tabelle Styling */
+.table-dark {
+  background-color: #1e1e1e;
+}
+
+.table-dark th, .table-dark td {
+  color: #ffffff;
+  border-color: #333;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Navbar Anpassungen */
+.navbar {
+  background-color: #1e1e1e !important;
+  padding: 15px;
+}
+
+.navbar .nav-link {
+  color: #bbb !important;
+  font-size: 1.1rem;
+}
+
+.navbar .nav-link:hover {
+  color: #ffffff !important;
+}
