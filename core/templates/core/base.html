@@ -12,20 +12,50 @@
     <!-- Eigene CSS-Datei -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   </head>
-  <body>
-    <!-- Header / Navigation -->
-    <!-- Optional: Bei der Login-Seite (login.html) kann die Navi ausgeblendet werden -->
-    <header>
-      {% block header %}{% endblock header %}
-    </header>
-    
-    <!-- Hauptinhalt -->
-    <main class="container my-4">
-      {% block content %}{% endblock content %}
-    </main>
+  <body class="bg-dark text-light">
+    <div class="d-flex">
+        <!-- Sidebar Navigation (wird auf jeder Seite genutzt) -->
+        <nav class="sidebar bg-secondary vh-100 p-3">
+            <h3 class="text-center text-light">Haushaltsbuch</h3>
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/home"><i class="bi bi-house-door"></i> Home</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/konten/"><i class="bi bi-wallet2"></i> Konten</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/buchungen/"><i class="bi bi-receipt"></i> Buchungen</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/budgets/"><i class="bi bi-cash"></i> Budgets</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/statistiken/"><i class="bi bi-bar-chart"></i> Statistiken</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/vertraege/"><i class="bi bi-file-earmark-text"></i> Verträge</a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-light" href="/einstellungen/"><i class="bi bi-gear"></i> Einstellungen</a>
+                </li>
+                <li class="nav-item mt-5">
+                    <form method="POST" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger w-100"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Hauptinhalt -->
+        <main class="container-fluid p-4">
+            {% block content %}{% endblock content %}
+        </main>
+    </div>
 
     <!-- Bootstrap JS (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Eigene JS-Datei (falls benötigt) -->
     {% block extra_scripts %}{% endblock extra_scripts %}
   </body>

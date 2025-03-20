@@ -1,91 +1,73 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}
-  Haushaltsbuch - Übersichtsseite
-{% endblock title %}
-
-{% block header %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Haushaltsbuch</a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent"
-      aria-expanded="false"
-      aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        <!-- Navigation zu verschiedenen Seiten -->
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Start</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/buchungen/">Buchungen</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/kategorien/">Kategorien</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/konten/">Konten</a>
-        </li>
-        <!-- Logout-Button -->
-        <li class="nav-item">
-          <form method="POST" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button class="btn nav-link" type="submit" style="border:none; background:none;">
-              Logout
-            </button>
-          </form>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-{% endblock header %}
+{% block title %}Dashboard - Haushaltsbuch{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Überblick über deine letzten Buchungen</h1>
-
-<!-- Buchungstabelle mit zusätzlichen Spalten für Konto, Buchungsart und Vertrag -->
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th scope="col">Datum</th>
-        <th scope="col">Kategorie</th>
-        <th scope="col">Beschreibung</th>
-        <th scope="col">Betrag</th>
-        <th scope="col">Konto</th>
-        <th scope="col">Buchungsart</th>
-        <th scope="col">Vertrag</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% if buchungen %}
-        {% for buchung in buchungen %}
-          <tr>
-            <td>{{ buchung.datum|date:"d.m.Y" }}</td>
-            <td>{{ buchung.kategorie }}</td>
-            <td>{{ buchung.beschreibung }}</td>
-            <td>{{ buchung.betrag }} €</td>
-            <td>{{ buchung.konto }}</td>
-            <td>{{ buchung.buchungsart }}</td>
-            <td>{{ buchung.vertrag }}</td>
-          </tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td colspan="7" class="text-center">Keine Buchungen vorhanden.</td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
-</div>
+    <h2>Dashboard - Mein Vermögen</h2>
+    
+    <div class="row mt-4">
+        <!-- Performance Bereich -->
+        <div class="col-md-8">
+            <div class="card bg-dark text-light p-3">
+                <h4>Performance</h4>
+                <h2>€ 929.914,18</h2>
+                <p class="text-success">▲ 18,80% (147.150,28 €)</p>
+            </div>
+        </div>
+        
+        <!-- Gesamtvermögen Übersicht -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-light p-3">
+                <h5>Gesamtvermögen</h5>
+                <h3>€ 929.914,18</h3>
+                <ul class="list-group list-group-flush bg-dark">
+                    <li class="list-group-item bg-dark text-light">Immobilien: € 364.680,00 <span class="text-success">▲ 6,27%</span></li>
+                    <li class="list-group-item bg-dark text-light">Wertpapiere: € 139.820,41 <span class="text-success">▲ 34,68%</span></li>
+                    <li class="list-group-item bg-dark text-light">Krypto: € 119.742,18 <span class="text-success">▲ 92,59%</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Buchungsübersicht -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card bg-dark text-light p-3">
+                <h5>Letzte Buchungen</h5>
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Kategorie</th>
+                            <th>Beschreibung</th>
+                            <th>Betrag</th>
+                            <th>Buchungsart</th>
+                            <th>Konto</th>
+                            <th>Vertrag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if buchungen %}
+                            {% for buchung in buchungen %}
+                                <tr>
+                                    <td>{{ buchung.datum|date:"d.m.Y" }}</td>
+                                    <td>{{ buchung.kategorie }}</td>
+                                    <td>{{ buchung.beschreibung }}</td>
+                                    <td>{{ buchung.betrag }} €</td>
+                                    <td>{{ buchung.buchungsart }}</td>
+                                    <td>{{ buchung.konto }}</td>
+                                    <td>{{ buchung.vertrag }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Keine Buchungen vorhanden.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
-
