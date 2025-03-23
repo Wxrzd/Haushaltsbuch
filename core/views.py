@@ -1,3 +1,5 @@
+# views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -17,7 +19,6 @@ from .forms import (
 
 @login_required
 def home(request):
-    # --- 1) Budgets für den aktuellen Monat ---
     aktueller_monat = date.today().replace(day=1)
     budgets = Budget.objects.filter(benutzer=request.user)
     
@@ -36,18 +37,14 @@ def home(request):
             'prozent': round(prozent),
         })
     
-    # --- 2) Kontenübersicht ---
     konten = Konto.objects.filter(benutzer=request.user)
     sum_kontostaende = 0
     for k in konten:
         k.kontostand = k.berechne_kontostand()
         sum_kontostaende += k.kontostand
     
-    # --- 3) Anstehende Vertragszahlungen (Platzhalter) ---
-    # Als Beispiel zeigen wir die nächsten 3 Verträge nach Ablaufdatum.
     vertraege_ausstehend = Vertrag.objects.filter(benutzer=request.user).order_by('ablaufdatum')[:3]
     
-    # --- 4) Letzte 8 Buchungen ---
     letzte_buchungen = Buchung.objects.filter(
         konto__benutzer=request.user
     ).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')[:8]
@@ -114,7 +111,6 @@ def buchung_list(request):
     form_einnahme = BuchungEinnahmeForm(user=request.user)
     form_ausgabe = BuchungAusgabeForm(user=request.user)
 
-    # Formulare für alle bestehenden Buchungen (zum Bearbeiten)
     formularliste_bearbeiten = [
         (buchung, BuchungForm(instance=buchung, user=request.user))
         for buchung in buchungen
@@ -224,9 +220,21 @@ def vertrag_delete(request, pk):
 @login_required
 def konto_list(request):
     konten = Konto.objects.filter(benutzer=request.user)
-    for konto in konten:
-        konto.kontostand = konto.berechne_kontostand()
-    return render(request, 'core/konto_list.html', {'konten': konten})
+    
+    form_create = KontoForm(user=request.user)
+    formulare_bearbeiten = {}
+    
+    for k in konten:
+        k.kontostand = k.berechne_kontostand()
+        k.buchungen = Buchung.objects.filter(konto=k).order_by('-buchungsdatum')
+        formulare_bearbeiten[k.kontonummer] = KontoForm(instance=k, user=request.user)
+    
+    context = {
+        'konten': konten,
+        'form_create': form_create,
+        'formulare_bearbeiten': formulare_bearbeiten,
+    }
+    return render(request, 'core/konto_list.html', context)
 
 @login_required
 def konto_create(request):
@@ -239,21 +247,24 @@ def konto_create(request):
         form = KontoForm(user=request.user)
     return render(request, 'core/konto_form.html', {'form': form})
 
+# ÄNDERUNG: Wir übergeben hier "benutzer=request.user" an get_object_or_404 und das Formular
 @login_required
 def konto_update(request, pk):
-    konto = get_object_or_404(Konto, pk=pk)
+    # Hier ist die Anpassung:
+    konto = get_object_or_404(Konto, pk=pk, benutzer=request.user)
     if request.method == 'POST':
-        form = KontoForm(request.POST, instance=konto)
+        # Hier ebenfalls: user=request.user
+        form = KontoForm(request.POST, instance=konto, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('konto_list')
     else:
-        form = KontoForm(instance=konto)
+        form = KontoForm(instance=konto, user=request.user)
     return render(request, 'core/konto_form.html', {'form': form})
 
 @login_required
 def konto_delete(request, pk):
-    konto = get_object_or_404(Konto, pk=pk)
+    konto = get_object_or_404(Konto, pk=pk, benutzer=request.user)
     if request.method == 'POST':
         konto.delete()
         return redirect('konto_list')
@@ -311,7 +322,6 @@ def budget_list(request):
     budgets = Budget.objects.filter(benutzer=request.user)
     form_create = BudgetForm(user=request.user)
 
-    # Neue Datenstruktur: Liste mit Budget + Ausgaben & Restbetrag
     budgets_mit_auswertung = []
     for budget in budgets:
         verbraucht = budget.berechne_ausgaben(aktueller_monat)

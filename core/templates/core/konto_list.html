@@ -1,29 +1,170 @@
 {% extends 'core/base.html' %}
+{% load static %}
+{% load dict_filters %}
+
+{% block title %}Konten{% endblock title %}
+
+{% block extra_css %}
+<!-- Binde die konto.css ein, wo das Styling für .konto-card etc. steht -->
+<link rel="stylesheet" href="{% static 'css/konto.css' %}">
+{% endblock extra_css %}
 
 {% block content %}
 <h2>Kontenübersicht</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Bezeichnung</th>
-            <th>Typ</th>
-            <th>Kontostand</th>
-            <th>Aktionen</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for konto in konten %}
-        <tr>
-            <td>{{ konto.name }}</td>
-            <td>{{ konto.kontotyp }}</td>
-            <td>{{ konto.kontostand }}</td>
-            <td>
-                <a href="{% url 'konto_update' konto.pk %}">Bearbeiten</a>
-                <a href="{% url 'konto_delete' konto.pk %}">Löschen</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'konto_create' %}">Neues Konto hinzufügen</a>
-{% endblock %}
+
+<!-- Button, um ein neues Konto via Modal anzulegen -->
+<button type="button" class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#createKontoModal">
+  + Neues Konto hinzufügen
+</button>
+
+<!-- 
+  Bootstrap-Grid:
+   row-cols-1 => auf kleinen Bildschirmen 1 Spalte
+   row-cols-md-3 => ab Medium (md) 3 Spalten
+   g-4 => Gutter (Abstand) von 1.5rem
+-->
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  {% for konto in konten %}
+    <!-- 
+      col => Spalte im Bootstrap-Grid
+      d-flex => macht die Spalte zum Flex-Container
+    -->
+    <div class="col d-flex">
+      <!-- 
+        .konto-card => unsere eigene CSS-Klasse (siehe konto.css)
+        flex-fill => füllt die Höhe im Flex-Container
+      -->
+      <div class="konto-card flex-fill">
+        <div class="card-body">
+          <!-- Konto-Name + Kontotyp -->
+          <h5 class="card-title">
+            {{ konto.name }} <small class="text-muted">({{ konto.kontotyp }})</small>
+          </h5>
+          
+          <!-- Kontostand als Text -->
+          <p class="mb-2">Kontostand: <strong>{{ konto.kontostand }} €</strong></p>
+          
+          <!-- 
+            Tabelle mit Buchungen. Nur gezeigt, wenn für das Konto Buchungen existieren.
+            Je nach Buchungsart (Einnahme/Ausgabe) wird der Betrag grün bzw. rot angezeigt. 
+          -->
+          {% if konto.buchungen %}
+            <table class="table table-dark table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Betrag</th>
+                  <th>Beschreibung</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for buchung in konto.buchungen %}
+                  <tr>
+                    <!-- Datum in deutschem Format (tt.mm.jjjj) -->
+                    <td>{{ buchung.buchungsdatum|date:"d.m.Y" }}</td>
+                    
+                    <!-- Betrag: grün wenn Einnahme, rot wenn Ausgabe; ein "-" bei Ausgaben -->
+                    <td>
+                      <span class="{% if buchung.buchungsart == 'Einnahme' %}text-success{% else %}text-danger{% endif %}">
+                        {% if buchung.buchungsart == 'Ausgabe' %}-{% endif %}
+                        {{ buchung.betrag }} €
+                      </span>
+                    </td>
+                    <td>{{ buchung.beschreibung|default_if_none:"-" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="fst-italic">Keine Buchungen vorhanden.</p>
+          {% endif %}
+          
+          <!-- Buttons zum Bearbeiten und Löschen (öffnen jeweils ein Modal) -->
+          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKontoModal{{ konto.kontonummer }}">
+            Bearbeiten
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteKontoModal{{ konto.kontonummer }}">
+            Löschen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Konto bearbeiten -->
+    <div class="modal fade" id="editKontoModal{{ konto.kontonummer }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+          <!-- 
+            form => POST an konto_update, 
+            Übergabe pk => z.B. /konten/bearbeiten/1/
+          -->
+          <form method="post" action="{% url 'konto_update' konto.pk %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title">Konto bearbeiten</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <!-- 
+                Wir binden das Partial "konto_form_fields.html" ein 
+                und geben den passenden Form aus dem Dictionary formulare_bearbeiten.
+              -->
+              {% include 'core/konto_form_fields.html' with form=formulare_bearbeiten|dictkey:konto.kontonummer %}
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Speichern</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Konto löschen -->
+    <div class="modal fade" id="deleteKontoModal{{ konto.kontonummer }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+          <form method="post" action="{% url 'konto_delete' konto.pk %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title">Konto löschen</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Möchtest du das Konto <strong>"{{ konto.name }}"</strong> wirklich löschen?
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-danger">Ja, löschen</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  {% endfor %}
+</div>
+
+<!-- Modal: Neues Konto -->
+<div class="modal fade" id="createKontoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-light">
+      <form method="post" action="{% url 'konto_create' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Neues Konto hinzufügen</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          {% include 'core/konto_form_fields.html' with form=form_create %}
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Erstellen</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

@@ -128,11 +128,16 @@ class KontoForm(forms.ModelForm):
     class Meta:
         model = Konto
         fields = ['name', 'kontotyp']
-
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            # Anstelle von forms.Select => forms.TextInput
+            'kontotyp': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-
+    
     def save(self, commit=True):
         konto = super().save(commit=False)
         if self.user:
@@ -140,6 +145,7 @@ class KontoForm(forms.ModelForm):
         if commit:
             konto.save()
         return konto
+
 
 class VertragForm(forms.ModelForm):
     class Meta:
