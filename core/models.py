@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from datetime import datetime, timedelta
 
-
 class BenutzerManager(BaseUserManager):
     def create_user(self, benutzername, email, passwort=None, **extra_fields):
         if not email:
@@ -17,7 +16,6 @@ class BenutzerManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(benutzername, email, passwort, **extra_fields)
-
 
 class Benutzer(AbstractBaseUser, PermissionsMixin):
     benutzername = models.CharField(max_length=150, unique=True, primary_key=True)
@@ -79,7 +77,6 @@ class Vertrag(models.Model):
         elif self.intervall == "wöchentlich":
             naechstes_datum = self.ablaufdatum + timedelta(weeks=1)
         elif self.intervall == "monatlich":
-            # Logik für Monate ohne `relativedelta`
             month = self.ablaufdatum.month + 1
             year = self.ablaufdatum.year
             if month > 12:
@@ -100,9 +97,7 @@ class Vertrag(models.Model):
             kategorie=self.kategorie
         )
 
-
 class Buchung(models.Model):
-    
     BETRAGSTYPEN = (
         ('Einnahme', 'Einnahme'),
         ('Ausgabe', 'Ausgabe'),
@@ -112,6 +107,7 @@ class Buchung(models.Model):
     betrag = models.DecimalField(max_digits=10, decimal_places=2)
     buchungsdatum = models.DateField()
     buchungsart = models.CharField(max_length=50, choices=BETRAGSTYPEN)
+    beschreibung = models.TextField(null=True, blank=True)
 
     konto = models.ForeignKey(Konto, on_delete=models.CASCADE)
     vertrag = models.ForeignKey(Vertrag, on_delete=models.CASCADE, null=True, blank=True)

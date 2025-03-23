@@ -11,6 +11,7 @@
     />
     <!-- Eigene CSS-Datei -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    {% block extra_css %}{% endblock extra_css %}
   </head>
   <body class="bg-dark text-light">
     <div class="d-flex">

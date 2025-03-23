@@ -4,8 +4,15 @@ from django.utils import timezone
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import Buchung, Konto, Vertrag, Kategorie
-from .forms import BuchungForm, KontoForm, RegistrierungsForm, VertragForm, KategorieForm
-
+from .forms import (
+    BuchungForm,
+    BuchungEinnahmeForm,
+    BuchungAusgabeForm,
+    KontoForm,
+    RegistrierungsForm,
+    VertragForm,
+    KategorieForm,
+)
 
 @login_required
 def home(request):
@@ -24,7 +31,7 @@ def registrierung_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')  # Falls bereits eingeloggt, weiterleiten
+        return redirect('home')
 
     form = AuthenticationForm(data=request.POST or None)
     
@@ -33,10 +40,9 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('home')  # Erfolgreicher Login -> Weiterleitung
+            return redirect('home')
         else:
-            form.add_error(None, "Benutzername oder Passwort ist falsch.")  # Allgemeine Fehlermeldung
-
+            form.add_error(None, "Benutzername oder Passwort ist falsch.")
     return render(request, 'core/login.html', {'form': form})
 
 @login_required
@@ -46,106 +52,81 @@ def logout_view(request):
 
 @login_required
 def buchung_list(request):
-    # Hole nur die Buchungen des aktuell eingeloggten Benutzers
-    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie').all()
-    return render(request, 'core/buchung_list.html', {'buchungen': buchungen})
+    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie')
+    konten = Konto.objects.filter(benutzer=request.user)
+    kategorien = Kategorie.objects.filter(benutzer=request.user)
 
+    # --- Filter & Suche aus GET-Parametern ---
+    selected_konto = request.GET.get('konto')
+    selected_kategorie = request.GET.get('kategorie')
+    search_query = request.GET.get('search')
+
+    if selected_konto:
+        buchungen = buchungen.filter(konto__kontonummer=selected_konto)
+    if selected_kategorie:
+        buchungen = buchungen.filter(kategorie__kategorienummer=selected_kategorie)
+    if search_query:
+        buchungen = buchungen.filter(beschreibung__icontains=search_query)
+
+    # --- POST: Neue Buchung wird direkt auf dieser Seite erstellt ---
+    if request.method == 'POST':
+        # Unterscheide Einnahme/Ausgabe am hidden Feld oder QueryParam
+        formtype = request.POST.get('formtype')
+        if formtype == 'einnahme':
+            form_einnahme = BuchungEinnahmeForm(request.POST, user=request.user)
+            form_ausgabe = BuchungAusgabeForm(user=request.user)  # leer
+            if form_einnahme.is_valid():
+                form_einnahme.save()
+                return redirect('buchung_list')
+        elif formtype == 'ausgabe':
+            form_ausgabe = BuchungAusgabeForm(request.POST, user=request.user)
+            form_einnahme = BuchungEinnahmeForm(user=request.user)  # leer
+            if form_ausgabe.is_valid():
+                form_ausgabe.save()
+                return redirect('buchung_list')
+        else:
+            # Fallback: evtl. altes BuchungForm
+            form_einnahme = BuchungEinnahmeForm(user=request.user)
+            form_ausgabe = BuchungAusgabeForm(user=request.user)
+    else:
+        form_einnahme = BuchungEinnahmeForm(user=request.user)
+        form_ausgabe = BuchungAusgabeForm(user=request.user)
+
+    context = {
+        'buchungen': buchungen,
+        'konten': konten,
+        'kategorien': kategorien,
+        'form_einnahme': form_einnahme,
+        'form_ausgabe': form_ausgabe,
+        'selected_konto': selected_konto,
+        'selected_kategorie': selected_kategorie,
+        'search_query': search_query,
+    }
+    return render(request, 'core/buchung_list.html', context)
 
 @login_required
 def buchung_create(request):
+    # Falls du die alte Route "/buchungen/neu/" weiter nutzen möchtest
     if request.method == 'POST':
-        form = BuchungForm(request.POST, user=request.user)  # Übergabe des aktuellen Benutzers
+        form = BuchungForm(request.POST, user=request.user)
         if form.is_valid():
-            buchung = form.save(commit=False)
-            buchung.save()
-            return redirect('buchung_list')  # Weiterleitung zur Buchungsliste
+            form.save()
+            return redirect('buchung_list')
     else:
-        form = BuchungForm(user=request.user)  # Übergabe des aktuellen Benutzers
-
+        form = BuchungForm(user=request.user)
     return render(request, 'core/buchung_form.html', {'form': form})
-
 
 @login_required
 def buchung_update(request, pk):
     buchung = get_object_or_404(Buchung, pk=pk)
     if request.method == 'POST':
-        form = BuchungForm(request.POST, instance=buchung, user=request.user)  # Übergabe des aktuellen Benutzers
+        form = BuchungForm(request.POST, instance=buchung, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('buchung_list')
     else:
-        form = BuchungForm(instance=buchung, user=request.user)  # Übergabe des aktuellen Benutzers
-
+        form = BuchungForm(instance=buchung, user=request.user)
     return render(request, 'core/buchung_form.html', {'form': form})
-
-@login_required
-def vertrag_list(request):
-    """ Zeigt alle Verträge des eingeloggten Benutzers an """
-    vertraege = Vertrag.objects.filter(benutzer=request.user)
-    return render(request, 'core/vertrag_list.html', {'vertraege': vertraege})
-
-
-@login_required
-def vertrag_create(request):
-    if request.method == 'POST':
-        form = VertragForm(request.POST, user=request.user)  # Benutzer übergeben
-        if form.is_valid():
-            vertrag = form.save(commit=False)
-            vertrag.benutzer = request.user  # Setze den Benutzer als Eigentümer des Vertrags
-            vertrag.save()
-            return redirect('vertrag_list')  # Zur Vertragsliste weiterleiten
-    else:
-        form = VertragForm(user=request.user)  # Benutzer übergeben
-
-    return render(request, 'core/vertrag_form.html', {'form': form})
-
-
-@login_required
-def vertrag_update(request, pk):
-    """ Bearbeitet einen bestehenden Vertrag """
-    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)  # Sicherstellen, dass nur eigene Verträge abrufbar sind
-
-    if request.method == "POST":
-        form = VertragForm(request.POST, instance=vertrag, user=request.user)  # user übergeben
-        if form.is_valid():
-            form.save()
-            return redirect('vertraege_liste')  # Korrigierter Redirect-Name
-    else:
-        form = VertragForm(instance=vertrag, user=request.user)  # user übergeben
-
-    return render(request, 'core/vertrag_form.html', {'form': form})
-
-@login_required
-def vertrag_delete(request, pk):
-    """ Löscht einen Vertrag """
-    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
-    if request.method == "POST":
-        vertrag.delete()
-        return redirect('vertrag_list')
-
-    return render(request, 'core/vertrag_confirm_delete.html', {'vertrag': vertrag})
-
-
-@login_required
-def vertrag_renew(request):
-    """ Erstellt automatisch Buchungen basierend auf bestehenden Verträgen """
-    vertraege = Vertrag.objects.filter(benutzer=request.user)
-
-    for vertrag in vertraege:
-        if vertrag.ablaufdatum <= timezone.now().date():
-            vertrag.delete()  # Vertrag löschen, wenn Ablaufdatum erreicht ist
-        else:
-            # Neue Buchung für den Vertrag generieren
-            Buchung.objects.create(
-                betrag=vertrag.betrag,
-                buchungsdatum=timezone.now().date(),
-                buchungsart="Ausgabe",
-                konto=vertrag.konto,
-                kategorie=vertrag.kategorie,
-                vertrag=vertrag
-            )
-
-    return redirect('vertrag_list')
 
 @login_required
 def buchung_delete(request, pk):
@@ -156,11 +137,48 @@ def buchung_delete(request, pk):
     return render(request, 'core/buchung_confirm_delete.html', {'buchung': buchung})
 
 @login_required
+def vertrag_list(request):
+    vertraege = Vertrag.objects.filter(benutzer=request.user)
+    return render(request, 'core/vertrag_list.html', {'vertraege': vertraege})
+
+@login_required
+def vertrag_create(request):
+    if request.method == 'POST':
+        form = VertragForm(request.POST, user=request.user)
+        if form.is_valid():
+            vertrag = form.save(commit=False)
+            vertrag.benutzer = request.user
+            vertrag.save()
+            return redirect('vertrag_list')
+    else:
+        form = VertragForm(user=request.user)
+    return render(request, 'core/vertrag_form.html', {'form': form})
+
+@login_required
+def vertrag_update(request, pk):
+    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
+    if request.method == 'POST':
+        form = VertragForm(request.POST, instance=vertrag, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('vertrag_list')
+    else:
+        form = VertragForm(instance=vertrag, user=request.user)
+    return render(request, 'core/vertrag_form.html', {'form': form})
+
+@login_required
+def vertrag_delete(request, pk):
+    vertrag = get_object_or_404(Vertrag, pk=pk, benutzer=request.user)
+    if request.method == 'POST':
+        vertrag.delete()
+        return redirect('vertrag_list')
+    return render(request, 'core/vertrag_confirm_delete.html', {'vertrag': vertrag})
+
+@login_required
 def konto_list(request):
-    # Hole nur die Konten des aktuell eingeloggten Benutzers
     konten = Konto.objects.filter(benutzer=request.user)
     for konto in konten:
-        konto.kontostand = konto.berechne_kontostand()  # Berechne den Kontostand für jedes Konto
+        konto.kontostand = konto.berechne_kontostand()
     return render(request, 'core/konto_list.html', {'konten': konten})
 
 @login_required
@@ -169,10 +187,9 @@ def konto_create(request):
         form = KontoForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('konto_list')  # Passe den Namen der Zielseite an
+            return redirect('konto_list')
     else:
-        form = KontoForm(user=request.user)  # Hier wird das Formular für GET-Requests initialisiert
-
+        form = KontoForm(user=request.user)
     return render(request, 'core/konto_form.html', {'form': form})
 
 @login_required
@@ -197,7 +214,7 @@ def konto_delete(request, pk):
 
 @login_required
 def kategorie_list(request):
-    kategorien = Kategorie.objects.filter(benutzer=request.user)  # Nur eigene Kategorien anzeigen
+    kategorien = Kategorie.objects.filter(benutzer=request.user)
     return render(request, 'core/kategorie_list.html', {'kategorien': kategorien})
 
 @login_required
@@ -206,7 +223,7 @@ def kategorie_create(request):
         form = KategorieForm(request.POST, user=request.user)
         if form.is_valid():
             kategorie = form.save(commit=False)
-            kategorie.benutzer = request.user  # Setze den aktuellen Benutzer
+            kategorie.benutzer = request.user
             kategorie.save()
             return redirect('kategorie_list')
     else:
@@ -215,7 +232,7 @@ def kategorie_create(request):
 
 @login_required
 def kategorie_update(request, pk):
-    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)  # Nur eigene Kategorien abrufen
+    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)
     if request.method == 'POST':
         form = KategorieForm(request.POST, instance=kategorie, user=request.user)
         if form.is_valid():
@@ -227,7 +244,7 @@ def kategorie_update(request, pk):
 
 @login_required
 def kategorie_delete(request, pk):
-    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)  # Nur eigene Kategorien abrufen
+    kategorie = get_object_or_404(Kategorie, pk=pk, benutzer=request.user)
     if request.method == 'POST':
         kategorie.delete()
         return redirect('kategorie_list')
