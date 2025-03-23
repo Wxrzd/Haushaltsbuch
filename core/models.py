@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from datetime import datetime, timedelta
+from datetime import timedelta, date
 
 class BenutzerManager(BaseUserManager):
     def create_user(self, benutzername, email, passwort=None, **extra_fields):
@@ -115,3 +115,33 @@ class Buchung(models.Model):
 
     def __str__(self):
         return f"Buchung {self.buchungsnummer}: {self.betrag} EUR, {self.buchungsart}"
+
+class Budget(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
+    kategorien = models.ManyToManyField(Kategorie)
+
+    def berechne_ausgaben(self, monat: date = None):
+        if monat is None:
+            monat = date.today()
+        start = monat.replace(day=1)
+        if start.month == 12:
+            end = start.replace(year=start.year + 1, month=1)
+        else:
+            end = start.replace(month=start.month + 1)
+
+        return Buchung.objects.filter(
+            kategorie__in=self.kategorien.all(),
+            buchungsart='Ausgabe',
+            konto__benutzer=self.benutzer,
+            buchungsdatum__gte=start,
+            buchungsdatum__lt=end
+        ).aggregate(models.Sum('betrag'))['betrag__sum'] or 0
+
+    def restbetrag(self, monat: date = None):
+        return self.betrag - self.berechne_ausgaben(monat)
+
+    def __str__(self):
+        return self.name

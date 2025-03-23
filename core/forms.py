@@ -1,7 +1,7 @@
 from django import forms
 from datetime import date
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Buchung, Benutzer, Konto, Vertrag, Kategorie
+from django.contrib.auth.forms import UserCreationForm
+from .models import Buchung, Benutzer, Konto, Vertrag, Kategorie, Budget
 from django.utils.timezone import now
 
 class RegistrierungsForm(UserCreationForm):
@@ -169,4 +169,18 @@ class KategorieForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user:
+            self.instance.benutzer = user
+
+class BudgetForm(forms.ModelForm):
+    class Meta:
+        model = Budget
+        fields = ['name', 'betrag', 'kategorien']
+        widgets = {
+            'kategorien': forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['kategorien'].queryset = Kategorie.objects.filter(benutzer=user)
             self.instance.benutzer = user

@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
-from django.utils import timezone
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Buchung, Konto, Vertrag, Kategorie
+from datetime import date
+from .models import Buchung, Konto, Vertrag, Kategorie, Budget
 from .forms import (
     BuchungForm,
     BuchungEinnahmeForm,
@@ -12,6 +12,7 @@ from .forms import (
     RegistrierungsForm,
     VertragForm,
     KategorieForm,
+    BudgetForm
 )
 
 @login_required
@@ -252,3 +253,74 @@ def kategorie_delete(request, pk):
         kategorie.delete()
         return redirect('kategorie_list')
     return render(request, 'core/kategorie_confirm_delete.html', {'kategorie': kategorie})
+
+@login_required
+def budget_list(request):
+    from datetime import date
+
+    monat = request.GET.get('monat')
+    if monat:
+        jahr, monat_num = map(int, monat.split('-'))
+        aktueller_monat = date(jahr, monat_num, 1)
+    else:
+        aktueller_monat = date.today().replace(day=1)
+
+    budgets = Budget.objects.filter(benutzer=request.user)
+    form_create = BudgetForm(user=request.user)
+
+    # Neue Datenstruktur: Liste mit Budget + Ausgaben & Restbetrag
+    budgets_mit_auswertung = []
+    for budget in budgets:
+        verbraucht = budget.berechne_ausgaben(aktueller_monat)
+        rest = budget.betrag - verbraucht
+        prozent = (verbraucht if budget.betrag else 0) / budget.betrag * 100 if budget.betrag else 0
+        budgets_mit_auswertung.append({
+            'obj': budget,
+            'rest': rest,
+            'verbrauch': verbraucht,
+            'prozent': round(prozent),
+        })
+
+    formulare_bearbeiten = {
+        b.id: BudgetForm(instance=b, user=request.user) for b in budgets
+    }
+
+    return render(request, 'core/budget_list.html', {
+        'budgets': budgets,
+        'budgets_mit_auswertung': budgets_mit_auswertung,
+        'form_create': form_create,
+        'formulare_bearbeiten': formulare_bearbeiten,
+        'aktueller_monat': aktueller_monat,
+    })
+
+@login_required
+def budget_create(request):
+    if request.method == 'POST':
+        form = BudgetForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('budget_list')
+    else:
+        form = BudgetForm(user=request.user)
+    return redirect('budget_list')
+
+
+@login_required
+def budget_update(request, pk):
+    budget = get_object_or_404(Budget, pk=pk, benutzer=request.user)
+    if request.method == 'POST':
+        form = BudgetForm(request.POST, instance=budget, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('budget_list')
+    else:
+        form = BudgetForm(instance=budget, user=request.user)
+    return render(request, 'core/budget_form.html', {'form': form})
+
+@login_required
+def budget_delete(request, pk):
+    budget = get_object_or_404(Budget, pk=pk, benutzer=request.user)
+    if request.method == 'POST':
+        budget.delete()
+        return redirect('budget_list')
+    return render(request, 'core/budget_confirm_delete.html', {'budget': budget})
