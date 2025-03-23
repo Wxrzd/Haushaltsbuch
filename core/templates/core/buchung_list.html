@@ -76,22 +76,74 @@
     </tr>
   </thead>
   <tbody>
-    {% for buchung in buchungen %}
-      <tr>
-        <td>{{ buchung.buchungsdatum|date:"d. F Y" }}</td>
-        <td class="{% if buchung.buchungsart == 'Einnahme' %}text-success{% else %}text-danger{% endif %}">
-          {% if buchung.buchungsart == 'Ausgabe' %}-{% endif %}
-          {{ buchung.betrag }} €
-        </td>
-        <td>{{ buchung.beschreibung }}</td>
-        <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
-        <td>{{ buchung.konto.name }}</td>
-        <td>{% if buchung.vertrag %}{{ buchung.vertrag.name }}{% else %}-{% endif %}</td>
-        <td>
-          <a href="{% url 'buchung_update' buchung.pk %}" class="btn-bearbeiten">Bearbeiten</a>
-          <a href="{% url 'buchung_delete' buchung.pk %}" class="btn-loeschen">Löschen</a>
-        </td>
-      </tr>
+    {% for buchung, form in formularliste_bearbeiten %}
+    <tr>
+      <td>{{ buchung.buchungsdatum|date:"d. F Y" }}</td>
+      <td class="{% if buchung.buchungsart == 'Einnahme' %}text-success{% else %}text-danger{% endif %}">
+        {% if buchung.buchungsart == 'Ausgabe' %}-{% endif %}
+        {{ buchung.betrag }} €
+      </td>
+      <td>{{ buchung.beschreibung }}</td>
+      <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
+      <td>{{ buchung.konto.name }}</td>
+      <td>{% if buchung.vertrag %}{{ buchung.vertrag.name }}{% else %}-{% endif %}</td>
+      <td>
+        <!-- Bearbeiten Button -->
+        <button type="button" class="btn-bearbeiten" data-bs-toggle="modal" data-bs-target="#modalEdit{{ buchung.pk }}">
+          Bearbeiten
+        </button>
+
+        <!-- Bearbeiten Modal -->
+        <div class="modal fade" id="modalEdit{{ buchung.pk }}" tabindex="-1" aria-labelledby="modalEditLabel{{ buchung.pk }}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content text-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalEditLabel{{ buchung.pk }}">Buchung bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+              </div>
+              <div class="modal-body">
+                <form id="formEdit{{ buchung.pk }}" method="POST" action="">
+                  {% csrf_token %}
+                  <input type="hidden" name="formtype" value="bearbeiten">
+                  <input type="hidden" name="buchung_id" value="{{ buchung.pk }}">
+                  {{ form.as_p }}
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" form="formEdit{{ buchung.pk }}" class="btn btn-primary">Speichern</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Löschen Button (optional) -->
+        <button type="button" class="btn-loeschen" data-bs-toggle="modal" data-bs-target="#modalDelete{{ buchung.pk }}">
+          Löschen
+        </button>
+
+        <div class="modal fade" id="modalDelete{{ buchung.pk }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ buchung.pk }}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content text-dark">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalDeleteLabel{{ buchung.pk }}">Buchung löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+              </div>
+              <div class="modal-body">
+                Möchtest du die Buchung <strong>"{{ buchung.beschreibung }}"</strong> wirklich löschen?
+              </div>
+              <div class="modal-footer">
+                <form method="POST" action="{% url 'buchung_delete' buchung.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger">Ja, löschen</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
     {% endfor %}
   </tbody>
 </table>

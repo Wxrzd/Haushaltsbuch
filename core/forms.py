@@ -2,6 +2,7 @@ from django import forms
 from datetime import date
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import Buchung, Benutzer, Konto, Vertrag, Kategorie
+from django.utils.timezone import now
 
 class RegistrierungsForm(UserCreationForm):
     class Meta:
@@ -15,15 +16,16 @@ class RegistrierungsForm(UserCreationForm):
         return email
 
 class BuchungForm(forms.ModelForm):
-    """
-    Altes, generisches Formular für Buchungen (falls du es weiterhin brauchst).
-    """
     buchungsdatum = forms.DateField(
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'datepicker',
-            'value': date.today().strftime('%Y-%m-%d')
-        }),
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',
+                'class': 'datepicker'
+            },
+            format='%Y-%m-%d'
+        ),
+        input_formats=['%Y-%m-%d'],
+        initial=now().date,
         required=True
     )
 
@@ -40,9 +42,9 @@ class BuchungForm(forms.ModelForm):
         ]
         widgets = {
             'buchungsart': forms.Select(choices=[('Einnahme', 'Einnahme'), ('Ausgabe', 'Ausgabe')]),
-            'beschreibung': forms.Textarea(attrs={'rows': 2}),  # etwas kleiner
+            'beschreibung': forms.Textarea(attrs={'rows': 2}),
         }
-    
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user:

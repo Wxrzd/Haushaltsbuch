@@ -52,11 +52,10 @@ def logout_view(request):
 
 @login_required
 def buchung_list(request):
-    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie')
+    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')
     konten = Konto.objects.filter(benutzer=request.user)
     kategorien = Kategorie.objects.filter(benutzer=request.user)
 
-    # --- Filter & Suche aus GET-Parametern ---
     selected_konto = request.GET.get('konto')
     selected_kategorie = request.GET.get('kategorie')
     search_query = request.GET.get('search')
@@ -68,29 +67,34 @@ def buchung_list(request):
     if search_query:
         buchungen = buchungen.filter(beschreibung__icontains=search_query)
 
-    # --- POST: Neue Buchung wird direkt auf dieser Seite erstellt ---
+    form_einnahme = BuchungEinnahmeForm(user=request.user)
+    form_ausgabe = BuchungAusgabeForm(user=request.user)
+
+    # Formulare für alle bestehenden Buchungen (zum Bearbeiten)
+    formularliste_bearbeiten = [
+        (buchung, BuchungForm(instance=buchung, user=request.user))
+        for buchung in buchungen
+    ]
+
     if request.method == 'POST':
-        # Unterscheide Einnahme/Ausgabe am hidden Feld oder QueryParam
         formtype = request.POST.get('formtype')
         if formtype == 'einnahme':
             form_einnahme = BuchungEinnahmeForm(request.POST, user=request.user)
-            form_ausgabe = BuchungAusgabeForm(user=request.user)  # leer
             if form_einnahme.is_valid():
                 form_einnahme.save()
                 return redirect('buchung_list')
         elif formtype == 'ausgabe':
             form_ausgabe = BuchungAusgabeForm(request.POST, user=request.user)
-            form_einnahme = BuchungEinnahmeForm(user=request.user)  # leer
             if form_ausgabe.is_valid():
                 form_ausgabe.save()
                 return redirect('buchung_list')
-        else:
-            # Fallback: evtl. altes BuchungForm
-            form_einnahme = BuchungEinnahmeForm(user=request.user)
-            form_ausgabe = BuchungAusgabeForm(user=request.user)
-    else:
-        form_einnahme = BuchungEinnahmeForm(user=request.user)
-        form_ausgabe = BuchungAusgabeForm(user=request.user)
+        elif formtype == 'bearbeiten':
+            buchung_id = request.POST.get('buchung_id')
+            buchung = get_object_or_404(Buchung, pk=buchung_id, konto__benutzer=request.user)
+            form = BuchungForm(request.POST, instance=buchung, user=request.user)
+            if form.is_valid():
+                form.save()
+                return redirect('buchung_list')
 
     context = {
         'buchungen': buchungen,
@@ -98,6 +102,7 @@ def buchung_list(request):
         'kategorien': kategorien,
         'form_einnahme': form_einnahme,
         'form_ausgabe': form_ausgabe,
+        'formularliste_bearbeiten': formularliste_bearbeiten,
         'selected_konto': selected_konto,
         'selected_kategorie': selected_kategorie,
         'search_query': search_query,
@@ -106,7 +111,6 @@ def buchung_list(request):
 
 @login_required
 def buchung_create(request):
-    # Falls du die alte Route "/buchungen/neu/" weiter nutzen möchtest
     if request.method == 'POST':
         form = BuchungForm(request.POST, user=request.user)
         if form.is_valid():
@@ -118,7 +122,7 @@ def buchung_create(request):
 
 @login_required
 def buchung_update(request, pk):
-    buchung = get_object_or_404(Buchung, pk=pk)
+    buchung = get_object_or_404(Buchung, pk=pk, konto__benutzer=request.user)
     if request.method == 'POST':
         form = BuchungForm(request.POST, instance=buchung, user=request.user)
         if form.is_valid():
@@ -130,11 +134,10 @@ def buchung_update(request, pk):
 
 @login_required
 def buchung_delete(request, pk):
-    buchung = get_object_or_404(Buchung, pk=pk)
+    buchung = get_object_or_404(Buchung, pk=pk, konto__benutzer=request.user)
     if request.method == 'POST':
         buchung.delete()
-        return redirect('buchung_list')
-    return render(request, 'core/buchung_confirm_delete.html', {'buchung': buchung})
+    return redirect('buchung_list')
 
 @login_required
 def vertrag_list(request):
