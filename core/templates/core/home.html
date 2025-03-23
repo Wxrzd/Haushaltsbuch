@@ -1,73 +1,175 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Haushaltsbuch{% endblock %}
+{% block title %}Home - Haushaltsbuch{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock extra_css %}
 
 {% block content %}
-    <h2>Dashboard - Mein Vermögen</h2>
-    
-    <div class="row mt-4">
-        <!-- Performance Bereich -->
-        <div class="col-md-8">
-            <div class="card bg-dark text-light p-3">
-                <h4>Performance</h4>
-                <h2>€ 929.914,18</h2>
-                <p class="text-success">▲ 18,80% (147.150,28 €)</p>
-            </div>
+<div class="home-container">
+
+    <h2 class="mb-4">Home</h2>
+
+    <!-- Erste Zeile mit Budgets, Konten, Verträgen -->
+    <div class="row gx-4 gy-4 home-section">
+      
+      <!-- Budgets als Tiles -->
+      <div class="col-md-4">
+        <div class="card home-card p-3">
+          <h4>Budgets (aktueller Monat)</h4>
+
+          <!-- Container für Budget-Kacheln -->
+          <div class="d-flex flex-wrap gap-2">
+            {% if budgets_mit_auswertung %}
+              {% for b in budgets_mit_auswertung %}
+                <div class="card tile-card p-2">
+                  <div class="tile-header">
+                    <strong>{{ b.obj.name }}</strong>
+                  </div>
+                  <div class="tile-body">
+                    Verbrauch: {{ b.verbrauch }} € / {{ b.obj.betrag }} €
+                    <div class="progress mt-1" style="height: 8px;">
+                      <div class="progress-bar 
+                        {% if b.prozent < 80 %}bg-success{% elif b.prozent < 100 %}bg-warning{% else %}bg-danger{% endif %}"
+                        role="progressbar"
+                        style="width: {{ b.prozent }}%;"
+                        aria-valuenow="{{ b.prozent }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100">
+                      </div>
+                    </div>
+                    <div class="restbetrag">Rest: {{ b.rest }} €</div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>Keine Budgets angelegt.</p>
+            {% endif %}
+          </div> <!-- Ende .d-flex -->
+
+          <div class="mt-3 text-end">
+            <a href="{% url 'budget_list' %}" class="btn btn-secondary">Alle Budgets</a>
+          </div>
         </div>
-        
-        <!-- Gesamtvermögen Übersicht -->
-        <div class="col-md-4">
-            <div class="card bg-dark text-light p-3">
-                <h5>Gesamtvermögen</h5>
-                <h3>€ 929.914,18</h3>
-                <ul class="list-group list-group-flush bg-dark">
-                    <li class="list-group-item bg-dark text-light">Immobilien: € 364.680,00 <span class="text-success">▲ 6,27%</span></li>
-                    <li class="list-group-item bg-dark text-light">Wertpapiere: € 139.820,41 <span class="text-success">▲ 34,68%</span></li>
-                    <li class="list-group-item bg-dark text-light">Krypto: € 119.742,18 <span class="text-success">▲ 92,59%</span></li>
-                </ul>
+      </div>
+
+      <!-- Konten als Tiles + Anzeige Summe Kontostände -->
+      <div class="col-md-4">
+        <div class="card home-card p-3">
+          <h4>Konten</h4>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% if konten %}
+              {% for k in konten %}
+                <div class="card tile-card p-2">
+                  <div class="tile-header">
+                    <strong>{{ k.name }}</strong>
+                  </div>
+                  <div class="tile-body">
+                    Kontostand: <span class="fw-bold">{{ k.kontostand }} €</span>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>Keine Konten vorhanden.</p>
+            {% endif %}
+          </div>
+
+          <!-- Summe der Kontostände -->
+          {% if konten and konten|length > 0 %}
+            <div class="mt-3">
+              <p class="summe-kontostaende">
+                <strong>Gesamt: {{ sum_kontostaende }} €</strong>
+              </p>
             </div>
+          {% endif %}
+
+          <div class="mt-2 text-end">
+            <a href="{% url 'konto_list' %}" class="btn btn-secondary">Alle Konten</a>
+          </div>
         </div>
+      </div>
+
+      <!-- Verträge in Listenform -->
+      <div class="col-md-4">
+        <div class="card home-card p-3">
+          <h4>Anstehende Vertragszahlungen</h4>
+
+          {% if vertraege_ausstehend %}
+            <ul class="list-group list-group-flush bg-dark">
+              {% for v in vertraege_ausstehend %}
+                <li class="list-group-item bg-dark text-light">
+                  <strong>{{ v.name }}</strong><br>
+                  Betrag: {{ v.betrag }} €<br>
+                  Nächste Fälligkeit (Platzhalter): {{ v.ablaufdatum|date:"d.m.Y" }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>Zurzeit keine Verträge hinterlegt.</p>
+          {% endif %}
+
+          <div class="mt-3 text-end">
+            <a href="{% url 'vertrag_list' %}" class="btn btn-secondary">Alle Verträge</a>
+          </div>
+        </div>
+      </div>
+
     </div>
-    
-    <!-- Buchungsübersicht -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card bg-dark text-light p-3">
-                <h5>Letzte Buchungen</h5>
-                <table class="table table-dark table-striped">
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Kategorie</th>
-                            <th>Beschreibung</th>
-                            <th>Betrag</th>
-                            <th>Buchungsart</th>
-                            <th>Konto</th>
-                            <th>Vertrag</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if buchungen %}
-                            {% for buchung in buchungen %}
-                                <tr>
-                                    <td>{{ buchung.datum|date:"d.m.Y" }}</td>
-                                    <td>{{ buchung.kategorie }}</td>
-                                    <td>{{ buchung.beschreibung }}</td>
-                                    <td>{{ buchung.betrag }} €</td>
-                                    <td>{{ buchung.buchungsart }}</td>
-                                    <td>{{ buchung.konto }}</td>
-                                    <td>{{ buchung.vertrag }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="7" class="text-center">Keine Buchungen vorhanden.</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Ende der ersten Zeile -->
+
+    <!-- Zweite Zeile: Letzte 8 Buchungen als Tabelle -->
+    <div class="row gx-4 gy-4 home-section">
+      <div class="col-md-12">
+        <div class="card home-card p-3">
+          <h4>Letzte Buchungen</h4>
+
+          {% if letzte_buchungen %}
+            <table class="table table-dark table-striped">
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Betrag</th>
+                  <th>Beschreibung</th>
+                  <th>Kategorie</th>
+                  <th>Konto</th>
+                  <th>Vertrag</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for buchung in letzte_buchungen %}
+                  <tr>
+                    <td>{{ buchung.buchungsdatum|date:"d. F Y" }}</td>
+                    <td class="{% if buchung.buchungsart == 'Einnahme' %}text-success{% else %}text-danger{% endif %}">
+                      {% if buchung.buchungsart == 'Ausgabe' %}-{% endif %}
+                      {{ buchung.betrag }} €
+                    </td>
+                    <td>{{ buchung.beschreibung }}</td>
+                    <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
+                    <td>{{ buchung.konto.name }}</td>
+                    <td>
+                      {% if buchung.vertrag %}
+                        {{ buchung.vertrag.name }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>Keine Buchungen vorhanden.</p>
+          {% endif %}
+          
+          <div class="mt-3 text-end">
+            <a href="{% url 'buchung_list' %}" class="btn btn-secondary">Alle Buchungen</a>
+          </div>
         </div>
+      </div>
     </div>
+
+</div> <!-- Ende .home-container -->
 {% endblock content %}

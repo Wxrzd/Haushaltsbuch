@@ -17,7 +17,50 @@ from .forms import (
 
 @login_required
 def home(request):
-    return render(request, 'core/home.html')
+    # --- 1) Budgets für den aktuellen Monat ---
+    aktueller_monat = date.today().replace(day=1)
+    budgets = Budget.objects.filter(benutzer=request.user)
+    
+    budgets_mit_auswertung = []
+    for budget in budgets:
+        verbraucht = budget.berechne_ausgaben(aktueller_monat)
+        rest = budget.betrag - verbraucht
+        prozent = 0
+        if budget.betrag > 0:
+            prozent = (verbraucht / budget.betrag) * 100
+        
+        budgets_mit_auswertung.append({
+            'obj': budget,
+            'rest': rest,
+            'verbrauch': verbraucht,
+            'prozent': round(prozent),
+        })
+    
+    # --- 2) Kontenübersicht ---
+    konten = Konto.objects.filter(benutzer=request.user)
+    sum_kontostaende = 0
+    for k in konten:
+        k.kontostand = k.berechne_kontostand()
+        sum_kontostaende += k.kontostand
+    
+    # --- 3) Anstehende Vertragszahlungen (Platzhalter) ---
+    # Als Beispiel zeigen wir die nächsten 3 Verträge nach Ablaufdatum.
+    vertraege_ausstehend = Vertrag.objects.filter(benutzer=request.user).order_by('ablaufdatum')[:3]
+    
+    # --- 4) Letzte 8 Buchungen ---
+    letzte_buchungen = Buchung.objects.filter(
+        konto__benutzer=request.user
+    ).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')[:8]
+    
+    context = {
+        'budgets_mit_auswertung': budgets_mit_auswertung,
+        'aktueller_monat': aktueller_monat,
+        'konten': konten,
+        'sum_kontostaende': sum_kontostaende,
+        'vertraege_ausstehend': vertraege_ausstehend,
+        'letzte_buchungen': letzte_buchungen,
+    }
+    return render(request, 'core/home.html', context)
 
 def registrierung_view(request):
     if request.method == 'POST':
@@ -303,7 +346,6 @@ def budget_create(request):
     else:
         form = BudgetForm(user=request.user)
     return redirect('budget_list')
-
 
 @login_required
 def budget_update(request, pk):
