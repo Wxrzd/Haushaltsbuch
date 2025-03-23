@@ -1,3 +1,5 @@
+# urls.py
+
 from django.urls import path
 from .views import (
     home, buchung_list, buchung_create, buchung_update, buchung_delete,
@@ -5,7 +7,8 @@ from .views import (
     registrierung_view, login_view, logout_view,
     vertrag_list, vertrag_create, vertrag_update, vertrag_delete,
     kategorie_list, kategorie_create, kategorie_update, kategorie_delete,
-    budget_list, budget_create, budget_update, budget_delete
+    budget_list, budget_create, budget_update, budget_delete,
+    statistiken_view
 )
 
 urlpatterns = [
@@ -38,4 +41,6 @@ urlpatterns = [
     path('budgets/neu/', budget_create, name='budget_create'),
     path('budgets/<int:pk>/bearbeiten/', budget_update, name='budget_update'),
     path('budgets/<int:pk>/loeschen/', budget_delete, name='budget_delete'),
+
+    path('statistiken/', statistiken_view, name='statistiken'),
 ]

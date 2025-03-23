@@ -4,7 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from datetime import date
+import calendar
 from .models import Buchung, Konto, Vertrag, Kategorie, Budget
 from .forms import (
     BuchungForm,
@@ -376,3 +378,104 @@ def budget_delete(request, pk):
         budget.delete()
         return redirect('budget_list')
     return render(request, 'core/budget_confirm_delete.html', {'budget': budget})
+
+@login_required
+def statistiken_view(request):
+    today = date.today()
+
+    # Listen, in denen wir Daten für die letzten 12 Monate sammeln
+    months = []
+    einnahmen = []
+    ausgaben = []
+    sparen_ausgaben = []
+
+    # Für das Auflisten rückwärts (z. B. i von 0 bis 11)
+    # und holt die jeweiligen Monatsgrenzen
+    for i in range(12):
+        # Monat berechnen (rückwärts)
+        m = today.month - i
+        y = today.year
+        # Falls der Monat <= 0 ist, gehen wir ins vorherige Jahr
+        if m <= 0:
+            m += 12
+            y -= 1
+
+        month_start = date(y, m, 1)
+        if m == 12:
+            next_month_start = date(y + 1, 1, 1)
+        else:
+            next_month_start = date(y, m + 1, 1)
+
+        # Summe Einnahmen
+        sum_einnahmen = (
+            Buchung.objects
+            .filter(konto__benutzer=request.user, buchungsart='Einnahme',
+                    buchungsdatum__gte=month_start, buchungsdatum__lt=next_month_start)
+            .aggregate(Sum('betrag'))['betrag__sum'] or 0
+        )
+
+        # Summe Ausgaben
+        sum_ausgaben = (
+            Buchung.objects
+            .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
+                    buchungsdatum__gte=month_start, buchungsdatum__lt=next_month_start)
+            .aggregate(Sum('betrag'))['betrag__sum'] or 0
+        )
+
+        # Ausgaben nur für Kategorie "Sparen"
+        sum_sparen = (
+            Buchung.objects
+            .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
+                    buchungsdatum__gte=month_start, buchungsdatum__lt=next_month_start,
+                    kategorie__kategoriebezeichnung__iexact='Sparen')
+            .aggregate(Sum('betrag'))['betrag__sum'] or 0
+        )
+
+        # Monatstitel (z.B. "Sep 2024")
+        month_name = f"{calendar.month_abbr[m]} {y}"
+
+        months.append(month_name)
+        einnahmen.append(float(sum_einnahmen))
+        ausgaben.append(float(sum_ausgaben))
+        sparen_ausgaben.append(float(sum_sparen))
+
+    # Da wir rückwärts gesammelt haben, einmal umdrehen,
+    # damit der älteste Monat links steht:
+    months.reverse()
+    einnahmen.reverse()
+    ausgaben.reverse()
+    sparen_ausgaben.reverse()
+
+    # Für das Kreisdiagramm: Ausgaben pro Kategorie im aktuellen Monat
+    current_month_start = date(today.year, today.month, 1)
+    if today.month == 12:
+        next_month_start = date(today.year + 1, 1, 1)
+    else:
+        next_month_start = date(today.year, today.month + 1, 1)
+
+    kategorien = Kategorie.objects.filter(benutzer=request.user)
+    pie_labels = []
+    pie_data = []
+
+    for kat in kategorien:
+        sum_kat = (
+            Buchung.objects
+            .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
+                    buchungsdatum__gte=current_month_start, buchungsdatum__lt=next_month_start,
+                    kategorie=kat)
+            .aggregate(Sum('betrag'))['betrag__sum'] or 0
+        )
+        if sum_kat > 0:
+            pie_labels.append(kat.kategoriebezeichnung)
+            pie_data.append(float(sum_kat))
+
+    context = {
+        'months': months,
+        'einnahmen': einnahmen,
+        'ausgaben': ausgaben,
+        'sparen_ausgaben': sparen_ausgaben,
+        'pie_labels': pie_labels,
+        'pie_data': pie_data,
+    }
+
+    return render(request, 'core/statistiken.html', context)

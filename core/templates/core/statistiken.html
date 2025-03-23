@@ -1,0 +1,140 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Statistiken{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/statistik.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<h2 class="mb-4">Statistiken</h2>
+
+<div class="row g-2">
+  <!-- Einnahmen (letzte 12 Monate) -->
+  <div class="col-md-6">
+    <div class="statistik-card">
+      <h5 class="card-title">Einnahmen (letzte 12 Monate)</h5>
+      <canvas id="einnahmenChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Ausgaben (letzte 12 Monate) -->
+  <div class="col-md-6">
+    <div class="statistik-card">
+      <h5 class="card-title">Ausgaben (letzte 12 Monate)</h5>
+      <canvas id="ausgabenChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Entwicklung Sparen (letzte 12 Monate) -->
+  <div class="col-md-6">
+    <div class="statistik-card">
+      <h5 class="card-title">Entwicklung Sparen (letzte 12 Monate)</h5>
+      <canvas id="sparenChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Ausgaben nach Kategorie (aktueller Monat) -->
+  <div class="col-md-6">
+    <div class="statistik-card">
+      <h5 class="card-title">Ausgaben nach Kategorie (aktueller Monat)</h5>
+      <canvas id="kategorieChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const months = {{ months|safe }};
+  const einnahmen = {{ einnahmen|safe }};
+  const ausgaben = {{ ausgaben|safe }};
+  const sparenAusgaben = {{ sparen_ausgaben|safe }};
+  const pieLabels = {{ pie_labels|safe }};
+  const pieData = {{ pie_data|safe }};
+
+  new Chart(document.getElementById('einnahmenChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Einnahmen',
+        data: einnahmen,
+        backgroundColor: 'rgba(0, 170, 0, 0.8)'
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: false  // Legende ausblenden
+        }
+      }
+    }
+  });
+  
+  new Chart(document.getElementById('ausgabenChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Ausgaben',
+        data: ausgaben,
+        backgroundColor: 'rgba(255, 3, 3, 0.5)'
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: false // Legende ausgeblendet
+        }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('sparenChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Sparen',
+        data: sparenAusgaben,
+        backgroundColor: 'rgba(0,0,255,0.3)'
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('kategorieChart'), {
+    type: 'pie',
+    data: {
+      labels: pieLabels,
+      datasets: [{
+        data: pieData,
+        backgroundColor: [
+          '#4dc9f6', '#f67019', '#f53794',
+          '#537bc4', '#acc236', '#166a8f',
+          '#00a950', '#58595b', '#8549ba'
+        ]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',  // Legende oben platzieren
+          align: 'center',  // Legende horizontal mittig ausrichten
+          labels: {
+            boxWidth: 20,   // kleinere Boxen für mehr Platz
+            padding: 15     // horizontalen Abstand zwischen Legenden-Items anpassen
+          }
+        }
+      },
+      responsive: true,
+      maintainAspectRatio: false  // ermöglicht flexibles Anpassen der Diagrammgröße per CSS
+    }
+  });
+  
+</script>
+
+{% endblock content %}
