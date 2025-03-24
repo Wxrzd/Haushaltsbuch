@@ -181,8 +181,62 @@ def buchung_delete(request, pk):
 
 @login_required
 def vertrag_list(request):
-    vertraege = Vertrag.objects.filter(benutzer=request.user)
-    return render(request, 'core/vertrag_list.html', {'vertraege': vertraege})
+    # Verarbeitung der POST-Anfragen (Neu, Bearbeiten, Löschen) wie bisher...
+    if request.method == 'POST':
+        formtype = request.POST.get('formtype')
+        if formtype == 'neu':
+            form_new = VertragForm(request.POST, user=request.user)
+            if form_new.is_valid():
+                vertrag = form_new.save(commit=False)
+                vertrag.benutzer = request.user
+                vertrag.save()
+                return redirect('vertrag_list')
+        elif formtype == 'bearbeiten':
+            vertrag_id = request.POST.get('vertrag_id')
+            vertrag = get_object_or_404(Vertrag, pk=vertrag_id, benutzer=request.user)
+            form_edit = VertragForm(request.POST, instance=vertrag, user=request.user)
+            if form_edit.is_valid():
+                form_edit.save()
+                return redirect('vertrag_list')
+        elif formtype == 'loeschen':
+            vertrag_id = request.POST.get('vertrag_id')
+            vertrag = get_object_or_404(Vertrag, pk=vertrag_id, benutzer=request.user)
+            vertrag.delete()
+            return redirect('vertrag_list')
+
+    # Alle Verträge abrufen und die zugehörige Hauptkategorie mitschleppen
+    vertraege = Vertrag.objects.filter(benutzer=request.user).select_related('kategorie__hauptkategorie')
+
+    ausgaben_list = []
+    einnahmen_list = []
+    sparen_list = []
+    for vertrag in vertraege:
+        form = VertragForm(instance=vertrag, user=request.user)
+        hauptkat = vertrag.kategorie.hauptkategorie.name
+        if hauptkat == "Einnahmen":
+            einnahmen_list.append((vertrag, form))
+        elif hauptkat == "Sparen":
+            sparen_list.append((vertrag, form))
+        else:
+            ausgaben_list.append((vertrag, form))
+
+    # Summen der Beträge pro Gruppe berechnen
+    ausgaben_total = sum([vertrag.betrag for vertrag, _ in ausgaben_list])
+    einnahmen_total = sum([vertrag.betrag for vertrag, _ in einnahmen_list])
+    sparen_total   = sum([vertrag.betrag for vertrag, _ in sparen_list])
+
+    new_form = VertragForm(user=request.user)
+
+    return render(request, 'core/vertrag_list.html', {
+        'ausgaben_list': ausgaben_list,
+        'einnahmen_list': einnahmen_list,
+        'sparen_list': sparen_list,
+        'new_form': new_form,
+        'ausgaben_total': ausgaben_total,
+        'einnahmen_total': einnahmen_total,
+        'sparen_total': sparen_total,
+    })
+
 
 @login_required
 def vertrag_create(request):
@@ -250,7 +304,6 @@ def konto_create(request):
         form = KontoForm(user=request.user)
     return render(request, 'core/konto_form.html', {'form': form})
 
-# ÄNDERUNG: Wir übergeben hier "benutzer=request.user" an get_object_or_404 und das Formular
 @login_required
 def konto_update(request, pk):
     # Hier ist die Anpassung:
@@ -286,7 +339,7 @@ def kategorie_create(request):
             kategorie = form.save(commit=False)
             kategorie.benutzer = request.user
             kategorie.save()
-            return redirect('kategorie_list')
+            return redirect('einstellungen')
     else:
         form = KategorieForm(user=request.user)
     return render(request, 'core/kategorie_form.html', {'form': form})
@@ -298,7 +351,7 @@ def kategorie_update(request, pk):
         form = KategorieForm(request.POST, instance=kategorie, user=request.user)
         if form.is_valid():
             form.save()
-            return redirect('kategorie_list')
+            return redirect('einstellungen')
     else:
         form = KategorieForm(instance=kategorie, user=request.user)
     return render(request, 'core/kategorie_form.html', {'form': form})

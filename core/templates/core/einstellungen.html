@@ -25,6 +25,7 @@
   <table class="table-categories">
     <thead>
       <tr>
+        <th>Hauptkategorie</th>
         <th>Bezeichnung</th>
         <th>Aktionen</th>
       </tr>
@@ -32,6 +33,7 @@
     <tbody>
       {% for kategorie in kategorien %}
       <tr>
+        <td>{{ kategorie.hauptkategorie.name }}</td>
         <td>{{ kategorie.kategoriebezeichnung }}</td>
         <td>
           <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKategorieModal{{ kategorie.pk }}">

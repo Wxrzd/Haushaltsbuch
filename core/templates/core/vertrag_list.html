@@ -1,41 +1,326 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block content %}
 <h2>Vertragsübersicht</h2>
-<a href="{% url 'vertrag_create' %}">Neuen Vertrag hinzufügen</a>
-<table border="1">
+
+<!-- Button zum Öffnen des Modals für einen neuen Vertrag -->
+<button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalNewVertrag">
+  Neuen Vertrag hinzufügen
+</button>
+
+<!-- Tabelle 1: Ausgaben (alle Verträge außer Einnahmen & Sparen) -->
+<h3>
+  Ausgaben 
+  <span class="float-end">Summe: {{ ausgaben_total }} €</span>
+</h3>
+{% if ausgaben_list %}
+<table class="table table-dark table-striped">
+  <thead>
     <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Betrag</th>
-        <th>Startdatum</th>
-        <th>Ablaufdatum</th>
-        <th>Intervall</th>
-        <th>Nächste Buchung</th>
-        <th>Konto</th>
-        <th>Kategorie</th>
-        <th>Aktionen</th>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Betrag</th>
+      <th>Startdatum</th>
+      <th>Ablaufdatum</th>
+      <th>Intervall</th>
+      <th>Nächste Buchung</th>
+      <th>Konto</th>
+      <th>Kategorie</th>
+      <th>Aktionen</th>
     </tr>
-    {% for vertrag in vertraege %}
+  </thead>
+  <tbody>
+    {% for vertrag, form in ausgaben_list %}
     <tr>
-        <td>{{ vertrag.vertragsnummer }}</td>
-        <td>{{ vertrag.name }}</td>
-        <td>{{ vertrag.betrag }}</td>
-        <td>{{ vertrag.startdatum }}</td>
-        <td>{{ vertrag.ablaufdatum }}</td>
-        <td>{{ vertrag.intervall }}</td>
-        <td>{{ vertrag.naechste_buchung }}</td>
-        <td>{{ vertrag.konto.name }}</td>
-        <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
-        <td>
-            <a href="{% url 'vertrag_update' vertrag.pk %}">Bearbeiten</a>
-            <a href="{% url 'vertrag_delete' vertrag.pk %}">Löschen</a>
-        </td>
+      <td>{{ vertrag.vertragsnummer }}</td>
+      <td>{{ vertrag.name }}</td>
+      <td>{{ vertrag.betrag }}</td>
+      <td>{{ vertrag.startdatum }}</td>
+      <td>{{ vertrag.ablaufdatum }}</td>
+      <td>{{ vertrag.intervall }}</td>
+      <td>{{ vertrag.naechste_buchung }}</td>
+      <td>{{ vertrag.konto.name }}</td>
+      <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
+      <td>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ vertrag.pk }}">
+          Bearbeiten
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDelete{{ vertrag.pk }}">
+          Löschen
+        </button>
+      </td>
     </tr>
-    {% empty %}
-    <tr>
-        <td colspan="10">Keine Verträge vorhanden.</td>
-    </tr>
+
+    <!-- Modal: Vertrag bearbeiten -->
+    <div class="modal fade" id="modalEdit{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalEditLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditLabel{{ vertrag.pk }}">Vertrag bearbeiten</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEdit{{ vertrag.pk }}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="bearbeiten">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" form="formEdit{{ vertrag.pk }}" class="btn btn-primary">Speichern</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Vertrag löschen -->
+    <div class="modal fade" id="modalDelete{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalDeleteLabel{{ vertrag.pk }}">Vertrag löschen</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            Möchtest du den Vertrag <strong>"{{ vertrag.name }}"</strong> wirklich löschen?
+          </div>
+          <div class="modal-footer">
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="loeschen">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              <button type="submit" class="btn btn-danger">Ja, löschen</button>
+            </form>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
     {% endfor %}
+  </tbody>
 </table>
+{% else %}
+<p>Keine Ausgaben-Verträge vorhanden.</p>
+{% endif %}
+
+<!-- Tabelle 2: Einnahmen (Hauptkategorie "Einnahmen") -->
+<h3>
+  Einnahmen 
+  <span class="float-end">Summe: {{ einnahmen_total }} €</span>
+</h3>
+{% if einnahmen_list %}
+<table class="table table-dark table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Betrag</th>
+      <th>Startdatum</th>
+      <th>Ablaufdatum</th>
+      <th>Intervall</th>
+      <th>Nächste Buchung</th>
+      <th>Konto</th>
+      <th>Kategorie</th>
+      <th>Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vertrag, form in einnahmen_list %}
+    <tr>
+      <td>{{ vertrag.vertragsnummer }}</td>
+      <td>{{ vertrag.name }}</td>
+      <td>{{ vertrag.betrag }}</td>
+      <td>{{ vertrag.startdatum }}</td>
+      <td>{{ vertrag.ablaufdatum }}</td>
+      <td>{{ vertrag.intervall }}</td>
+      <td>{{ vertrag.naechste_buchung }}</td>
+      <td>{{ vertrag.konto.name }}</td>
+      <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
+      <td>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ vertrag.pk }}">
+          Bearbeiten
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDelete{{ vertrag.pk }}">
+          Löschen
+        </button>
+      </td>
+    </tr>
+    
+    <!-- Modal: Vertrag bearbeiten -->
+    <div class="modal fade" id="modalEdit{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalEditLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditLabel{{ vertrag.pk }}">Vertrag bearbeiten</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEdit{{ vertrag.pk }}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="bearbeiten">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" form="formEdit{{ vertrag.pk }}" class="btn btn-primary">Speichern</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal: Vertrag löschen -->
+    <div class="modal fade" id="modalDelete{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalDeleteLabel{{ vertrag.pk }}">Vertrag löschen</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            Möchtest du den Vertrag <strong>"{{ vertrag.name }}"</strong> wirklich löschen?
+          </div>
+          <div class="modal-footer">
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="loeschen">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              <button type="submit" class="btn btn-danger">Ja, löschen</button>
+            </form>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Keine Einnahmen-Verträge vorhanden.</p>
+{% endif %}
+
+<!-- Tabelle 3: Sparen (Hauptkategorie "Sparen") -->
+<h3>
+  Sparen 
+  <span class="float-end">Summe: {{ sparen_total }} €</span>
+</h3>
+{% if sparen_list %}
+<table class="table table-dark table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Betrag</th>
+      <th>Startdatum</th>
+      <th>Ablaufdatum</th>
+      <th>Intervall</th>
+      <th>Nächste Buchung</th>
+      <th>Konto</th>
+      <th>Kategorie</th>
+      <th>Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vertrag, form in sparen_list %}
+    <tr>
+      <td>{{ vertrag.vertragsnummer }}</td>
+      <td>{{ vertrag.name }}</td>
+      <td>{{ vertrag.betrag }}</td>
+      <td>{{ vertrag.startdatum }}</td>
+      <td>{{ vertrag.ablaufdatum }}</td>
+      <td>{{ vertrag.intervall }}</td>
+      <td>{{ vertrag.naechste_buchung }}</td>
+      <td>{{ vertrag.konto.name }}</td>
+      <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
+      <td>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ vertrag.pk }}">
+          Bearbeiten
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDelete{{ vertrag.pk }}">
+          Löschen
+        </button>
+      </td>
+    </tr>
+    
+    <!-- Modal: Vertrag bearbeiten -->
+    <div class="modal fade" id="modalEdit{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalEditLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditLabel{{ vertrag.pk }}">Vertrag bearbeiten</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEdit{{ vertrag.pk }}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="bearbeiten">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" form="formEdit{{ vertrag.pk }}" class="btn btn-primary">Speichern</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal: Vertrag löschen -->
+    <div class="modal fade" id="modalDelete{{ vertrag.pk }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ vertrag.pk }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-dark">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalDeleteLabel{{ vertrag.pk }}">Vertrag löschen</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            Möchtest du den Vertrag <strong>"{{ vertrag.name }}"</strong> wirklich löschen?
+          </div>
+          <div class="modal-footer">
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="formtype" value="loeschen">
+              <input type="hidden" name="vertrag_id" value="{{ vertrag.pk }}">
+              <button type="submit" class="btn btn-danger">Ja, löschen</button>
+            </form>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Keine Sparen-Verträge vorhanden.</p>
+{% endif %}
+
+<!-- Modal: Neuen Vertrag erstellen -->
+<div class="modal fade" id="modalNewVertrag" tabindex="-1" aria-labelledby="modalNewVertragLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content text-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalNewVertragLabel">Neuen Vertrag erstellen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formNewVertrag" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="formtype" value="neu">
+          {{ new_form.as_p }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" form="formNewVertrag" class="btn btn-primary">Speichern</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
