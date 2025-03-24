@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from datetime import datetime, timedelta
-
+from datetime import timedelta, date
 
 class BenutzerManager(BaseUserManager):
     def create_user(self, benutzername, email, passwort=None, **extra_fields):
@@ -17,7 +16,6 @@ class BenutzerManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(benutzername, email, passwort, **extra_fields)
-
 
 class Benutzer(AbstractBaseUser, PermissionsMixin):
     benutzername = models.CharField(max_length=150, unique=True, primary_key=True)
@@ -50,13 +48,20 @@ class Konto(models.Model):
     def __str__(self):
         return self.name
 
+class Hauptkategorie(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class Kategorie(models.Model):
     kategorienummer = models.AutoField(primary_key=True)
     kategoriebezeichnung = models.CharField(max_length=100)
-    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
+    hauptkategorie = models.ForeignKey(Hauptkategorie, on_delete=models.CASCADE, related_name='unterkategorien')
+    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return self.kategoriebezeichnung
+        return f"{self.hauptkategorie.name} > {self.kategoriebezeichnung}"
 
 class Vertrag(models.Model):
     vertragsnummer = models.AutoField(primary_key=True)
@@ -79,7 +84,6 @@ class Vertrag(models.Model):
         elif self.intervall == "wöchentlich":
             naechstes_datum = self.ablaufdatum + timedelta(weeks=1)
         elif self.intervall == "monatlich":
-            # Logik für Monate ohne `relativedelta`
             month = self.ablaufdatum.month + 1
             year = self.ablaufdatum.year
             if month > 12:
@@ -100,9 +104,7 @@ class Vertrag(models.Model):
             kategorie=self.kategorie
         )
 
-
 class Buchung(models.Model):
-    
     BETRAGSTYPEN = (
         ('Einnahme', 'Einnahme'),
         ('Ausgabe', 'Ausgabe'),
@@ -112,6 +114,7 @@ class Buchung(models.Model):
     betrag = models.DecimalField(max_digits=10, decimal_places=2)
     buchungsdatum = models.DateField()
     buchungsart = models.CharField(max_length=50, choices=BETRAGSTYPEN)
+    beschreibung = models.TextField(null=True, blank=True)
 
     konto = models.ForeignKey(Konto, on_delete=models.CASCADE)
     vertrag = models.ForeignKey(Vertrag, on_delete=models.CASCADE, null=True, blank=True)
@@ -119,3 +122,33 @@ class Buchung(models.Model):
 
     def __str__(self):
         return f"Buchung {self.buchungsnummer}: {self.betrag} EUR, {self.buchungsart}"
+
+class Budget(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
+    kategorien = models.ManyToManyField(Kategorie)
+
+    def berechne_ausgaben(self, monat: date = None):
+        if monat is None:
+            monat = date.today()
+        start = monat.replace(day=1)
+        if start.month == 12:
+            end = start.replace(year=start.year + 1, month=1)
+        else:
+            end = start.replace(month=start.month + 1)
+
+        return Buchung.objects.filter(
+            kategorie__in=self.kategorien.all(),
+            buchungsart='Ausgabe',
+            konto__benutzer=self.benutzer,
+            buchungsdatum__gte=start,
+            buchungsdatum__lt=end
+        ).aggregate(models.Sum('betrag'))['betrag__sum'] or 0
+
+    def restbetrag(self, monat: date = None):
+        return self.betrag - self.berechne_ausgaben(monat)
+
+    def __str__(self):
+        return self.name

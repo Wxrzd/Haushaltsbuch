@@ -1,0 +1,86 @@
+/* 
+  .konto-card ist die Container-Klasse für jede Karte. 
+  Wir verwenden kein .card wie bei Bootstrap, weil wir es 
+  individuell stylen möchten.
+*/
+.konto-card {
+    border-radius: 20px;
+    background-color: #343a40;
+    color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  /* Leichter Hover-Effekt: die Karte hebt sich etwas hervor */
+  .konto-card:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Titel größer und etwas formatiert */
+  .konto-card .card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Kontostand fett */
+  .konto-card .kontostand {
+    font-weight: bold;
+  }
+  
+  /* 
+    Tabelle der Buchungen, 
+    margin-top für etwas Abstand 
+  */
+  .konto-card table.table {
+    margin-top: 15px;
+  }
+  
+  /* Kopfzeile dunkler, Trennlinie */
+  .konto-card table.table thead th {
+    background-color: #495057;
+    border-bottom: 2px solid #6c757d;
+  }
+  
+  /* Zellen weißer Text, 
+     etwas Padding */
+  .konto-card table.table thead th,
+  .konto-card table.table tbody td {
+    color: #ffffff;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Abwechselnde Farbgebung für gerade Zeilen */
+  .konto-card table.table tbody tr:nth-child(even) {
+    background-color: #3c4147;
+  }
+  
+  /* Hover-Effekt in Tabellenzeilen */
+  .konto-card table.table tbody tr:hover {
+    background-color: #4a4f55;
+  }
+  
+  /* Buttons innerhalb der Karte */
+  .konto-card .btn {
+    margin-right: 5px;
+    margin-top: 10px;
+  }
+  
+  /* Hintergrund und Textfarbe für die Modal-Popups */
+  .modal-content {
+    background-color: #343a40;
+    color: #ffffff;
+  }
+  
+  .modal-header,
+  .modal-footer {
+    border-color: #495057;
+  }
+  
+  /* Modaltitel etwas größer */
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+  

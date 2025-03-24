@@ -2,13 +2,32 @@
 
 {% block content %}
 <h2>{% if form.instance.pk %}Buchung bearbeiten{% else %}Neue Buchung{% endif %}</h2>
+
 <form method="POST">
     {% csrf_token %}
     <table>
-        {{ form.as_table }}
+      <!-- Wir gehen hier von der Reihenfolge in form.as_table aus.
+           Wenn du es manuell anpassen willst, schreibst du die Felder einzeln: -->
+      {{ form.buchungsdatum.errors }}<tr><th>Datum</th><td>{{ form.buchungsdatum }}</td></tr>
+      {{ form.betrag.errors }}<tr><th>Betrag</th><td>{{ form.betrag }}</td></tr>
+      {{ form.beschreibung.errors }}<tr><th>Beschreibung</th><td>{{ form.beschreibung }}</td></tr>
+      {{ form.kategorie.errors }}<tr><th>Kategorie</th><td>{{ form.kategorie }}</td></tr>
+      {{ form.konto.errors }}<tr><th>Konto</th><td>{{ form.konto }}</td></tr>
+      {{ form.vertrag.errors }}<tr><th>Vertrag</th><td>{{ form.vertrag }}</td></tr>
+
+      <!-- Falls das Formular BuchungForm hat ein 'buchungsart' -->
+      {% if form.fields.buchungsart %}
+        {{ form.buchungsart.errors }}<tr><th>Art</th><td>{{ form.buchungsart }}</td></tr>
+      {% endif %}
     </table>
-    <button type="submit">Speichern</button>
-    <a href="{% url 'buchung_list' %}">Abbrechen</a>
+    <br>
+    <button type="submit" class="btn btn-primary">
+      {% if form.instance.pk %}
+        Aktualisieren
+      {% else %}
+        Speichern
+      {% endif %}
+    </button>
+    <a href="{% url 'buchung_list' %}" class="btn btn-secondary">Abbrechen</a>
 </form>
 {% endblock %}
-

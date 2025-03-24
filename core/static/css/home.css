@@ -1,0 +1,63 @@
+.home-container {
+  margin-top: 20px;
+}
+
+.home-section {
+  margin-bottom: 30px;
+}
+
+/* Haupt-Karten (die großen Container um Budgets, Konten, Verträge, Buchungen) */
+.home-card {
+  background-color: #2c2c2c;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  min-height: 300px; /* Mindesthöhe für die großen Cards */
+}
+
+.home-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+}
+
+.home-card h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+/* Kachel-Layout für die einzelnen Budget-/Konto-/Vertrags-Elemente */
+.tile-card {
+  background-color: #3a3a3a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  width: calc(50% - 1rem); /* halbe Breite pro Kachel, minus Lücke (bei 2 pro Zeile) */
+  min-width: 180px;
+  min-height: 150px; /* Mindesthöhe für die einzelnen Kacheln */
+  color: #fff;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.tile-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.tile-header {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.tile-body {
+  font-size: 0.9rem;
+}
+
+.restbetrag {
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Wenn man lieber 1 Zeile = 3 Kacheln möchte: 
+   width: calc(33.333% - 1rem); anpassen
+   oder Bootstrap-Klassen col-xxx verwenden. */

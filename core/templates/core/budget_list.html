@@ -1,0 +1,127 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+{% load dict_filters %}
+
+{% block title %}Budgets{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/budget.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2>Budgets für {{ aktueller_monat|date:"F Y" }}</h2>
+
+<!-- Monat wechseln -->
+<form method="get" class="mb-3 d-flex align-items-center gap-2">
+  <input type="text"
+       class="form-control monthpicker w-auto"
+       data-default-date="{{ aktueller_monat|date:'Y-m' }}"
+       name="monat"
+       placeholder="Monat wählen"
+       autocomplete="off">
+  <button type="submit" class="btn btn-primary">Anzeigen</button>
+  <button type="button" class="btn btn-success ms-auto" data-bs-toggle="modal" data-bs-target="#createBudgetModal">
+      + Neues Budget
+  </button>
+</form>
+
+<div class="row">
+  {% for eintrag in budgets_mit_auswertung %}
+    {% with budget=eintrag.obj %}
+    <div class="col-md-4">
+      <div class="card budget-card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">{{ budget.name }}</h5>
+          <p>Gesamtbetrag: {{ budget.betrag }} €</p>
+          <p>Restbetrag: {{ eintrag.rest }} €</p>
+
+          <div class="budget-progress mt-2">
+            <div class="used" style="width: {{ eintrag.prozent }}%"></div>
+          </div>
+          <small>{{ eintrag.prozent }} % verbraucht</small>
+
+          <p>Kategorien: {{ budget.kategorien.all|join:", " }}</p>
+
+          <!-- Button: Bearbeiten -->
+          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editBudgetModal{{ budget.id }}">
+              Bearbeiten
+          </button>
+
+          <!-- Button: Löschen -->
+          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteBudgetModal{{ budget.id }}">
+              Löschen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editBudgetModal{{ budget.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ budget.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+          <form method="post" action="{% url 'budget_update' budget.id %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModalLabel{{ budget.id }}">Budget bearbeiten</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              {% include 'core/budget_form_fields.html' with form=formulare_bearbeiten|dictkey:budget.id %}
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Speichern</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteBudgetModal{{ budget.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ budget.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+          <form method="post" action="{% url 'budget_delete' budget.id %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteModalLabel{{ budget.id }}">Budget löschen</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Möchtest du das Budget <strong>"{{ budget.name }}"</strong> wirklich löschen?
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-danger">Ja, löschen</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  {% endfor %}
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createBudgetModal" tabindex="-1" aria-labelledby="createBudgetModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-light">
+      <form method="post" action="{% url 'budget_create' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="createBudgetModalLabel">Neues Budget erstellen</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            {% include 'core/budget_form_fields.html' with form=form_create %}
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Erstellen</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
