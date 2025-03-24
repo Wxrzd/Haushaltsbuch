@@ -170,7 +170,7 @@ class VertragForm(forms.ModelForm):
 class KategorieForm(forms.ModelForm):
     class Meta:
         model = Kategorie
-        fields = ['kategoriebezeichnung']
+        fields = ['hauptkategorie', 'kategoriebezeichnung']
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)

@@ -48,13 +48,20 @@ class Konto(models.Model):
     def __str__(self):
         return self.name
 
+class Hauptkategorie(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class Kategorie(models.Model):
     kategorienummer = models.AutoField(primary_key=True)
     kategoriebezeichnung = models.CharField(max_length=100)
-    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
+    hauptkategorie = models.ForeignKey(Hauptkategorie, on_delete=models.CASCADE, related_name='unterkategorien')
+    benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return self.kategoriebezeichnung
+        return f"{self.hauptkategorie.name} > {self.kategoriebezeichnung}"
 
 class Vertrag(models.Model):
     vertragsnummer = models.AutoField(primary_key=True)
