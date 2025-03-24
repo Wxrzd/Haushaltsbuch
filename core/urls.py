@@ -8,7 +8,7 @@ from .views import (
     vertrag_list, vertrag_create, vertrag_update, vertrag_delete,
     kategorie_list, kategorie_create, kategorie_update, kategorie_delete,
     budget_list, budget_create, budget_update, budget_delete,
-    statistiken_view
+    statistiken_view, einstellungen
 )
 
 urlpatterns = [
@@ -43,4 +43,6 @@ urlpatterns = [
     path('budgets/<int:pk>/loeschen/', budget_delete, name='budget_delete'),
 
     path('statistiken/', statistiken_view, name='statistiken'),
+
+    path("einstellungen/", einstellungen, name="einstellungen"),
 ]

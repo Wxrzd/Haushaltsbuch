@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+  <h2>Einstellungen</h2>
+
+  <!--<h3>Profil bearbeiten</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ user_form.as_p }}
+    <button type="submit" name="save_user">Speichern</button>
+  </form>
+
+  <hr>
+  -->
+  <h3>Passwort ändern</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ password_form.as_p }}
+    <button type="submit" name="change_password">Passwort ändern</button>
+  </form>
+
+<h2>Kategorien</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Bezeichnung</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for kategorie in kategorien %}
+        <tr>
+            <td>{{ kategorie.kategoriebezeichnung }}</td>
+            <td>
+                <a href="{% url 'kategorie_update' kategorie.pk %}">Bearbeiten</a>
+                <a href="{% url 'kategorie_delete' kategorie.pk %}">Löschen</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'kategorie_create' %}">Neue Kategorie hinzufügen</a>
+
+{% endblock %}
