@@ -4,13 +4,17 @@
   <h2>Neuen Vertrag erstellen</h2>
   <form method="post">
     {% csrf_token %}
+
     <label for="id_name">Vertragsname:</label>
     {{ form.name }}
 
     <label for="id_betrag">Betrag in €:</label>
     {{ form.betrag }}
 
-    <label for="id_ablaufdatum">Ablaufdatum:</label>
+    <label for="id_startdatum">Vertragsbeginn:</label>
+    {{ form.startdatum }}
+
+    <label for="id_ablaufdatum">Vertragsende:</label>
     {{ form.ablaufdatum }}
 
     <label for="id_intervall">Intervall:</label>

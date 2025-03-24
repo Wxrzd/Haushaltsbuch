@@ -8,29 +8,33 @@
         <th>ID</th>
         <th>Name</th>
         <th>Betrag</th>
+        <th>Startdatum</th>
         <th>Ablaufdatum</th>
         <th>Intervall</th>
+        <th>Nächste Buchung</th>
         <th>Konto</th>
         <th>Kategorie</th>
         <th>Aktionen</th>
     </tr>
     {% for vertrag in vertraege %}
     <tr>
-        <td>{{ vertrag.vertragsnummer }}</td>  <!-- Vertragsnummer statt vertrag.id -->
+        <td>{{ vertrag.vertragsnummer }}</td>
         <td>{{ vertrag.name }}</td>
-        <td>{{ vertrag.betrag }} €</td>
+        <td>{{ vertrag.betrag }}</td>
+        <td>{{ vertrag.startdatum }}</td>
         <td>{{ vertrag.ablaufdatum }}</td>
         <td>{{ vertrag.intervall }}</td>
-        <td>{{ vertrag.konto.name }}</td>  <!-- Konto anzeigen -->
-        <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>  <!-- Kategorie anzeigen -->
+        <td>{{ vertrag.naechste_buchung }}</td>
+        <td>{{ vertrag.konto.name }}</td>
+        <td>{{ vertrag.kategorie.kategoriebezeichnung }}</td>
         <td>
-            <a href="{% url 'vertrag_update' vertrag.vertragsnummer %}">Bearbeiten</a>
-            <a href="{% url 'vertrag_delete' vertrag.vertragsnummer %}">Löschen</a>
+            <a href="{% url 'vertrag_update' vertrag.pk %}">Bearbeiten</a>
+            <a href="{% url 'vertrag_delete' vertrag.pk %}">Löschen</a>
         </td>
     </tr>
     {% empty %}
     <tr>
-        <td colspan="8">Keine Verträge vorhanden.</td>
+        <td colspan="10">Keine Verträge vorhanden.</td>
     </tr>
     {% endfor %}
 </table>

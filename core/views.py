@@ -194,9 +194,12 @@ def vertrag_create(request):
             vertrag = form.save(commit=False)
             vertrag.benutzer = request.user
             vertrag.save()
-            return redirect('vertrag_list')
+            return redirect('vertrag_list')  # Weiterleitung nach dem Speichern
+        else:
+            print(form.errors)  # Zeigt Fehler in der Konsole an
     else:
         form = VertragForm(user=request.user)
+
     return render(request, 'core/vertrag_form.html', {'form': form})
 
 @login_required

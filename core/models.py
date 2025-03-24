@@ -67,9 +67,11 @@ class Vertrag(models.Model):
     vertragsnummer = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     betrag = models.DecimalField(max_digits=10, decimal_places=2)
+    startdatum = models.DateField(null=True)  # Neues Feld
     ablaufdatum = models.DateField()
     intervall = models.CharField(max_length=50)
-    
+    naechste_buchung = models.DateField(blank=True, null=True)  # Neues Feld
+
     benutzer = models.ForeignKey(Benutzer, on_delete=models.CASCADE)
     konto = models.ForeignKey(Konto, on_delete=models.CASCADE)
     kategorie = models.ForeignKey(Kategorie, on_delete=models.CASCADE)
@@ -77,32 +79,46 @@ class Vertrag(models.Model):
     def __str__(self):
         return f"{self.name} ({self.benutzer})"
 
-    def erstelle_buchung(self):
-        """Erstellt eine Buchung basierend auf dem Vertragsintervall"""
+    def berechne_naechste_buchung(self):
+        """Berechnet die nächste Buchung basierend auf dem Intervall"""
         if self.intervall == "täglich":
-            naechstes_datum = self.ablaufdatum + timedelta(days=1)
+            return self.startdatum + timedelta(days=1)
         elif self.intervall == "wöchentlich":
-            naechstes_datum = self.ablaufdatum + timedelta(weeks=1)
+            return self.startdatum + timedelta(weeks=1)
         elif self.intervall == "monatlich":
-            month = self.ablaufdatum.month + 1
-            year = self.ablaufdatum.year
+            month = self.startdatum.month + 1
+            year = self.startdatum.year
             if month > 12:
                 month = 1
                 year += 1
-            naechstes_datum = self.ablaufdatum.replace(month=month, year=year)
+            return self.startdatum.replace(month=month, year=year)
         elif self.intervall == "jährlich":
-            naechstes_datum = self.ablaufdatum.replace(year=self.ablaufdatum.year + 1)
-        else:
-            return  # Keine automatische Buchung für unbekannte Intervalle
+            return self.startdatum.replace(year=self.startdatum.year + 1)
+        return None  # Falls kein gültiges Intervall
+
+    def save(self, *args, **kwargs):
+        """Setzt automatisch die nächste Buchung beim Speichern"""
+        if not self.naechste_buchung:
+            self.naechste_buchung = self.berechne_naechste_buchung()
+        super().save(*args, **kwargs)
+
+    def erstelle_buchung(self):
+        """Erstellt eine Buchung basierend auf dem Vertragsintervall"""
+        if not self.naechste_buchung:
+            return  # Falls keine nächste Buchung gesetzt wurde
 
         Buchung.objects.create(
             betrag=self.betrag,
-            buchungsdatum=naechstes_datum,
-            buchungsart="Ausgabe",  # Verträge sind normalerweise Ausgaben
+            buchungsdatum=self.naechste_buchung,
+            buchungsart="Ausgabe",
             konto=self.konto,
             vertrag=self,
             kategorie=self.kategorie
         )
+
+        # Nächste Buchung neu berechnen
+        self.naechste_buchung = self.berechne_naechste_buchung()
+        self.save()
 
 class Buchung(models.Model):
     BETRAGSTYPEN = (

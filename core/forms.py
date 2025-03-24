@@ -202,8 +202,9 @@ class KontoForm(forms.ModelForm):
 class VertragForm(forms.ModelForm):
     class Meta:
         model = Vertrag
-        fields = ['name', 'betrag', 'ablaufdatum', 'intervall', 'konto', 'kategorie']
+        fields = ['name', 'betrag', 'startdatum', 'ablaufdatum', 'intervall', 'konto', 'kategorie']
         widgets = {
+            'startdatum': forms.DateInput(attrs={'type': 'date'}),
             'ablaufdatum': forms.DateInput(attrs={'type': 'date'}),
             'intervall': forms.Select(choices=[
                 ('täglich', 'Täglich'),
@@ -212,7 +213,7 @@ class VertragForm(forms.ModelForm):
                 ('jährlich', 'Jährlich'),
             ]),
         }
-    
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user:
