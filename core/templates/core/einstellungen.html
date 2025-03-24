@@ -1,44 +1,122 @@
 {% extends "core/base.html" %}
+{% load static %}
+{% load dict_filters %}
+
+{% block title %}Einstellungen{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/einstellungen.css' %}">
+{% endblock %}
 
 {% block content %}
+<div class="einstellungen-container">
   <h2>Einstellungen</h2>
 
-  <!--<h3>Profil bearbeiten</h3>
-  <form method="post">
-    {% csrf_token %}
-    {{ user_form.as_p }}
-    <button type="submit" name="save_user">Speichern</button>
-  </form>
-
-  <hr>
-  -->
   <h3>Passwort ändern</h3>
   <form method="post">
     {% csrf_token %}
     {{ password_form.as_p }}
-    <button type="submit" name="change_password">Passwort ändern</button>
+    <button type="submit" name="change_password" class="btn btn-primary">Passwort ändern</button>
   </form>
 
-<h2>Kategorien</h2>
-<table>
+  <hr>
+
+  <h2>Benutzerdefinierte Kategorien</h2>
+  <table class="table-categories">
     <thead>
-        <tr>
-            <th>Bezeichnung</th>
-            <th>Aktionen</th>
-        </tr>
+      <tr>
+        <th>Bezeichnung</th>
+        <th>Aktionen</th>
+      </tr>
     </thead>
     <tbody>
-        {% for kategorie in kategorien %}
-        <tr>
-            <td>{{ kategorie.kategoriebezeichnung }}</td>
-            <td>
-                <a href="{% url 'kategorie_update' kategorie.pk %}">Bearbeiten</a>
-                <a href="{% url 'kategorie_delete' kategorie.pk %}">Löschen</a>
-            </td>
-        </tr>
-        {% endfor %}
+      {% for kategorie in kategorien %}
+      <tr>
+        <td>{{ kategorie.kategoriebezeichnung }}</td>
+        <td>
+          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKategorieModal{{ kategorie.pk }}">
+            Bearbeiten
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteKategorieModal{{ kategorie.pk }}">
+            Löschen
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
     </tbody>
-</table>
-<a href="{% url 'kategorie_create' %}">Neue Kategorie hinzufügen</a>
+  </table>
+  
+  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createKategorieModal">
+    Neue Kategorie hinzufügen
+  </button>
 
+  <!-- Popup-Modal für Kategorie-Bearbeitung & Löschen -->
+  {% for kategorie in kategorien %}
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editKategorieModal{{ kategorie.pk }}" tabindex="-1" aria-labelledby="editKategorieModalLabel{{ kategorie.pk }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <form method="post" action="{% url 'kategorie_update' kategorie.pk %}">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="editKategorieModalLabel{{ kategorie.pk }}">Kategorie bearbeiten</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            {% include 'core/kategorie_form_fields.html' with form=formulare_bearbeiten|dictkey:kategorie.pk %}
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Speichern</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="deleteKategorieModal{{ kategorie.pk }}" tabindex="-1" aria-labelledby="deleteKategorieModalLabel{{ kategorie.pk }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <form method="post" action="{% url 'kategorie_delete' kategorie.pk %}">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteKategorieModalLabel{{ kategorie.pk }}">Kategorie löschen</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            Möchtest du die Kategorie <strong>"{{ kategorie.kategoriebezeichnung }}"</strong> wirklich löschen?
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Ja, löschen</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Create Modal -->
+  <div class="modal fade" id="createKategorieModal" tabindex="-1" aria-labelledby="createKategorieModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <form method="post" action="{% url 'kategorie_create' %}">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="createKategorieModalLabel">Neue Kategorie</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+            {% include 'core/kategorie_form_fields.html' with form=form_create_kategorie %}
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Erstellen</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

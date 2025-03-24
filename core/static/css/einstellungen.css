@@ -1,0 +1,35 @@
+/* Einstellungen-Styles */
+
+/* Entfernt das "Tile"-Aussehen (Hintergrundfarbe, Rahmen, max-width, zentrierte Ausrichtung) */
+.einstellungen-container {
+    margin: 0;
+    padding: 20px;
+}
+
+.einstellungen-container h2,
+.einstellungen-container h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.table-categories {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table-categories th,
+.table-categories td {
+    border: 1px solid #444;
+    padding: 10px;
+    text-align: left;
+}
+
+.table-categories th {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+
+.btn {
+    margin-right: 5px;
+}

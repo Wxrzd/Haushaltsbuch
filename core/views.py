@@ -485,22 +485,23 @@ def statistiken_view(request):
 @login_required
 def einstellungen(request):
     if request.method == "POST":
-        #user_form = UserChangeForm(request.POST, instance=request.user)
         password_form = PasswordChangeForm(request.user, request.POST)
-
-        #if "save_user" in request.POST and user_form.is_valid():
-            #user_form.save()
-            #return redirect("einstellungen")
-
         if "change_password" in request.POST and password_form.is_valid():
             password_form.save()
-            update_session_auth_hash(request, password_form.user)  # Verhindert Logout nach Passwortänderung
+            update_session_auth_hash(request, password_form.user)
             return redirect("einstellungen")
     else:
-        #user_form = UserChangeForm(instance=request.user)
         password_form = PasswordChangeForm(request.user)
 
+    # Neue Kategorien-Funktionalität für das Popup
+    from .forms import KategorieForm
+    kategorien = Kategorie.objects.filter(benutzer=request.user)
+    form_create_kategorie = KategorieForm(user=request.user)
+    formulare_bearbeiten = { k.pk: KategorieForm(instance=k, user=request.user) for k in kategorien }
+
     return render(request, "core/einstellungen.html", {
-        #"user_form": user_form,
         "password_form": password_form,
+        "kategorien": kategorien,
+        "form_create_kategorie": form_create_kategorie,
+        "formulare_bearbeiten": formulare_bearbeiten,
     })
