@@ -35,10 +35,10 @@
     </div>
   </div>
 
-  <!-- Ausgaben nach Kategorie (aktueller Monat) -->
+  <!-- Ausgaben nach Hauptkategorien (aktueller Monat) -->
   <div class="col-md-6">
     <div class="statistik-card">
-      <h5 class="card-title">Ausgaben nach Kategorie (aktueller Monat)</h5>
+      <h5 class="card-title">Ausgaben nach Hauptkategorien (aktueller Monat)</h5>
       <canvas id="kategorieChart"></canvas>
     </div>
   </div>
@@ -48,13 +48,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+  // Daten für die Balkendiagramme (Einnahmen, Ausgaben, Sparen)
   const months = {{ months|safe }};
   const einnahmen = {{ einnahmen|safe }};
   const ausgaben = {{ ausgaben|safe }};
   const sparenAusgaben = {{ sparen_ausgaben|safe }};
-  const pieLabels = {{ pie_labels|safe }};
-  const pieData = {{ pie_data|safe }};
 
+  // 1) Einnahmen-Diagramm (Balken)
   new Chart(document.getElementById('einnahmenChart'), {
     type: 'bar',
     data: {
@@ -67,13 +67,12 @@
     },
     options: {
       plugins: {
-        legend: {
-          display: false  // Legende ausblenden
-        }
+        legend: { display: false }
       }
     }
   });
-  
+
+  // 2) Ausgaben-Diagramm (Balken)
   new Chart(document.getElementById('ausgabenChart'), {
     type: 'bar',
     data: {
@@ -86,13 +85,12 @@
     },
     options: {
       plugins: {
-        legend: {
-          display: false // Legende ausgeblendet
-        }
+        legend: { display: false }
       }
     }
   });
 
+  // 3) Sparen-Diagramm (Balken)
   new Chart(document.getElementById('sparenChart'), {
     type: 'bar',
     data: {
@@ -102,8 +100,17 @@
         data: sparenAusgaben,
         backgroundColor: 'rgba(0,0,255,0.3)'
       }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false }
+      }
     }
   });
+
+  // 4) Kreisdiagramm (Pie) für Ausgaben nach Hauptkategorien
+  const pieLabels = {{ pie_labels|safe }};
+  const pieData = {{ pie_data|safe }};
 
   new Chart(document.getElementById('kategorieChart'), {
     type: 'pie',
@@ -122,19 +129,31 @@
       plugins: {
         legend: {
           display: true,
-          position: 'top',  // Legende oben platzieren
-          align: 'center',  // Legende horizontal mittig ausrichten
+          position: 'top',     // Legende oben
+          align: 'center',     // Horizontal ausgerichtet
           labels: {
-            boxWidth: 20,   // kleinere Boxen für mehr Platz
-            padding: 15     // horizontalen Abstand zwischen Legenden-Items anpassen
+            boxWidth: 12,
+            font: {
+              size: 12
+            },
+            padding: 10
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              return `${label}: ${value.toFixed(2)} €`;
+            }
           }
         }
       },
       responsive: true,
-      maintainAspectRatio: false  // ermöglicht flexibles Anpassen der Diagrammgröße per CSS
+      maintainAspectRatio: false
     }
   });
-  
+</script>
 </script>
 
 {% endblock content %}

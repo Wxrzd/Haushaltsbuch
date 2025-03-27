@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Q, F
 from datetime import date
+from collections import defaultdict
 import calendar
 from .models import Buchung, Konto, Vertrag, Kategorie, Budget
 from .forms import (
@@ -437,19 +438,15 @@ def budget_delete(request, pk):
 def statistiken_view(request):
     today = date.today()
 
-    # Listen, in denen wir Daten für die letzten 12 Monate sammeln
+    # Listen für die letzten 12 Monate
     months = []
     einnahmen = []
     ausgaben = []
     sparen_ausgaben = []
 
-    # Für das Auflisten rückwärts (z. B. i von 0 bis 11)
-    # und holt die jeweiligen Monatsgrenzen
     for i in range(12):
-        # Monat berechnen (rückwärts)
         m = today.month - i
         y = today.year
-        # Falls der Monat <= 0 ist, gehen wir ins vorherige Jahr
         if m <= 0:
             m += 12
             y -= 1
@@ -460,7 +457,6 @@ def statistiken_view(request):
         else:
             next_month_start = date(y, m + 1, 1)
 
-        # Summe Einnahmen
         sum_einnahmen = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Einnahme',
@@ -468,7 +464,6 @@ def statistiken_view(request):
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
 
-        # Summe Ausgaben
         sum_ausgaben = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
@@ -476,7 +471,6 @@ def statistiken_view(request):
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
 
-        # Ausgaben nur für Kategorie "Sparen"
         sum_sparen = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
@@ -485,43 +479,64 @@ def statistiken_view(request):
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
 
-        # Monatstitel (z.B. "Sep 2024")
         month_name = f"{calendar.month_abbr[m]} {y}"
-
         months.append(month_name)
         einnahmen.append(float(sum_einnahmen))
         ausgaben.append(float(sum_ausgaben))
         sparen_ausgaben.append(float(sum_sparen))
 
-    # Da wir rückwärts gesammelt haben, einmal umdrehen,
-    # damit der älteste Monat links steht:
     months.reverse()
     einnahmen.reverse()
     ausgaben.reverse()
     sparen_ausgaben.reverse()
 
-    # Für das Kreisdiagramm: Ausgaben pro Kategorie im aktuellen Monat
+    # ------------------------------------------
+    # FÜR DAS KREISDIAGRAMM (aktueller Monat):
+    # ------------------------------------------
     current_month_start = date(today.year, today.month, 1)
     if today.month == 12:
         next_month_start = date(today.year + 1, 1, 1)
     else:
         next_month_start = date(today.year, today.month + 1, 1)
 
-    kategorien = Kategorie.objects.filter(benutzer=request.user)
-    pie_labels = []
-    pie_data = []
+    # Hauptkategorien ermitteln (Standard und benutzerspezifisch)
+    unterkategorien = Kategorie.objects.filter(
+        Q(benutzer=request.user) | Q(benutzer=None)
+    ).select_related('hauptkategorie')
 
-    for kat in kategorien:
-        sum_kat = (
+    from collections import defaultdict
+    hauptkategorie_summen = defaultdict(float)
+
+    for kat in unterkategorien:
+        hauptname = kat.hauptkategorie.name if kat.hauptkategorie else None
+
+        # Hauptkategorie "Lohn/Gehalt" und "Sparen" ausschließen
+        if hauptname in ["Einnahmen", "Sparen"]:
+            continue
+
+        summe = (
             Buchung.objects
-            .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
-                    buchungsdatum__gte=current_month_start, buchungsdatum__lt=next_month_start,
-                    kategorie=kat)
+            .filter(
+                konto__benutzer=request.user,
+                buchungsart='Ausgabe',
+                buchungsdatum__gte=current_month_start,
+                buchungsdatum__lt=next_month_start,
+                kategorie=kat
+            )
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
-        if sum_kat > 0:
-            pie_labels.append(kat.kategoriebezeichnung)
-            pie_data.append(float(sum_kat))
+
+        # WICHTIG: Nur wenn > 0, wird sie übernommen
+        if hauptname and summe > 0:
+            hauptkategorie_summen[hauptname] += float(summe)
+
+    # Nur Kategorien mit tatsächlichen Ausgaben sind jetzt enthalten
+    pie_labels = list(hauptkategorie_summen.keys())
+    pie_data = list(hauptkategorie_summen.values())
+
+    if not pie_data:  # Fallback, falls kein Eintrag vorhanden
+        pie_labels = ["Keine Ausgaben"]
+        pie_data = [0]
 
     context = {
         'months': months,
@@ -533,7 +548,6 @@ def statistiken_view(request):
     }
 
     return render(request, 'core/statistiken.html', context)
-
 
 @login_required
 def einstellungen(request):
