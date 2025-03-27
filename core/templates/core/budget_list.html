@@ -41,7 +41,19 @@
           </div>
           <small>{{ eintrag.prozent }} % verbraucht</small>
 
-          <p>Kategorien: {{ budget.kategorien.all|join:", " }}</p>
+          <!-- ... im Inneren der Card ... -->
+          <p>
+            <strong>Kategorien:</strong>
+            {% if budget.kategorien.count == 0 %}
+              keine
+            {% else %}
+              {% for cat in budget.kategorien.all %}
+                {% if cat.hauptkategorie %} 
+                  {{ cat.kategoriebezeichnung }}{% if not forloop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </p>
 
           <!-- Button: Bearbeiten -->
           <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editBudgetModal{{ budget.id }}">
