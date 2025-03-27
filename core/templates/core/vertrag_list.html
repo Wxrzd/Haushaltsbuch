@@ -18,7 +18,6 @@
 <table class="table table-dark table-striped">
   <thead>
     <tr>
-      <th>ID</th>
       <th>Name</th>
       <th>Betrag</th>
       <th>Startdatum</th>
@@ -33,7 +32,6 @@
   <tbody>
     {% for vertrag, form in ausgaben_list %}
     <tr>
-      <td>{{ vertrag.vertragsnummer }}</td>
       <td>{{ vertrag.name }}</td>
       <td>{{ vertrag.betrag }}</td>
       <td>{{ vertrag.startdatum }}</td>
@@ -115,7 +113,6 @@
 <table class="table table-dark table-striped">
   <thead>
     <tr>
-      <th>ID</th>
       <th>Name</th>
       <th>Betrag</th>
       <th>Startdatum</th>
@@ -130,7 +127,6 @@
   <tbody>
     {% for vertrag, form in einnahmen_list %}
     <tr>
-      <td>{{ vertrag.vertragsnummer }}</td>
       <td>{{ vertrag.name }}</td>
       <td>{{ vertrag.betrag }}</td>
       <td>{{ vertrag.startdatum }}</td>
@@ -212,7 +208,6 @@
 <table class="table table-dark table-striped">
   <thead>
     <tr>
-      <th>ID</th>
       <th>Name</th>
       <th>Betrag</th>
       <th>Startdatum</th>
@@ -227,7 +222,6 @@
   <tbody>
     {% for vertrag, form in sparen_list %}
     <tr>
-      <td>{{ vertrag.vertragsnummer }}</td>
       <td>{{ vertrag.name }}</td>
       <td>{{ vertrag.betrag }}</td>
       <td>{{ vertrag.startdatum }}</td>
