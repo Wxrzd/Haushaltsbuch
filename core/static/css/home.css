@@ -12,7 +12,6 @@
   border: 1px solid #3a3a3a;
   border-radius: 10px;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  min-height: 300px; /* Mindesthöhe für die großen Cards */
 }
 
 .home-card:hover {
@@ -31,9 +30,6 @@
   background-color: #3a3a3a;
   border: 1px solid #444;
   border-radius: 8px;
-  width: calc(50% - 1rem); /* halbe Breite pro Kachel, minus Lücke (bei 2 pro Zeile) */
-  min-width: 180px;
-  min-height: 150px; /* Mindesthöhe für die einzelnen Kacheln */
   color: #fff;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
@@ -57,7 +53,3 @@
   font-weight: 600;
   margin-top: 2px;
 }
-
-/* Wenn man lieber 1 Zeile = 3 Kacheln möchte: 
-   width: calc(33.333% - 1rem); anpassen
-   oder Bootstrap-Klassen col-xxx verwenden. */
