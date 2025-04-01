@@ -284,7 +284,7 @@ def konto_list(request):
     
     for k in konten:
         k.kontostand = k.berechne_kontostand()
-        k.buchungen = Buchung.objects.filter(konto=k).order_by('-buchungsdatum')
+        k.buchungen = Buchung.objects.filter(konto=k).order_by('-buchungsdatum')[:10]
         formulare_bearbeiten[k.kontonummer] = KontoForm(instance=k, user=request.user)
     
     context = {
