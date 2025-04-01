@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q, F
+from django.urls import reverse
 from datetime import date
 from collections import defaultdict
 import calendar
@@ -610,14 +611,20 @@ def statistiken_view(request):
 def einstellungen(request):
     if request.method == "POST":
         password_form = PasswordChangeForm(request.user, request.POST)
-        if "change_password" in request.POST and password_form.is_valid():
-            password_form.save()
-            update_session_auth_hash(request, password_form.user)
-            return redirect("einstellungen")
+        if "change_password" in request.POST:
+            if password_form.is_valid():
+                password_form.save()
+                update_session_auth_hash(request, password_form.user)
+                # Erfolg -> Weiterleitung mit Parameter, damit wir ein "Erfolg"-Popup zeigen
+                return redirect(reverse("einstellungen") + "?pwchanged=1")
+            else:
+                # Form ist invalid => zeige Fehler (z. B. falsches altes Passwort oder Mismatch)
+                # => Wir machen hier NICHTS weiteres, sondern übergeben das Form mit Errors zurück
+                pass
     else:
         password_form = PasswordChangeForm(request.user)
 
-    # Neue Kategorien-Funktionalität für das Popup
+    # Kategorien-Code wie gehabt
     from .forms import KategorieForm
     kategorien = Kategorie.objects.filter(benutzer=request.user)
     form_create_kategorie = KategorieForm(user=request.user)

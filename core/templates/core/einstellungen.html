@@ -12,11 +12,72 @@
 <div class="einstellungen-container">
   <h2>Einstellungen</h2>
 
+  <!-- Passwort erfolgreich geändert? -->
+  {% if request.GET.pwchanged == "1" %}
+    <script>
+      alert("Passwort wurde erfolgreich geändert!");
+    </script>
+  {% endif %}
+
   <h3>Passwort ändern</h3>
+
   <form method="post">
     {% csrf_token %}
-    {{ password_form.as_p }}
-    <button type="submit" name="change_password" class="btn btn-primary">Passwort ändern</button>
+
+    <!-- Fehlermeldungen als Bootstrap-Alert (falls vorhanden) -->
+    {% if password_form.errors and request.method == "POST" and "change_password" in request.POST %}
+      <div class="alert alert-danger" role="alert">
+        <strong>Fehler:</strong>
+        {% for field, errors in password_form.errors.items %}
+          {% for error in errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Altes Passwort -->
+    <div class="mb-3">
+      {{ password_form.old_password.label_tag }}
+      {{ password_form.old_password }}
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        onclick="togglePasswordVisibility('id_old_password', this)"
+      >
+        Anzeigen
+      </button>
+    </div>
+
+    <!-- Neues Passwort (1) -->
+    <div class="mb-3">
+      {{ password_form.new_password1.label_tag }}
+      {{ password_form.new_password1 }}
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        onclick="togglePasswordVisibility('id_new_password1', this)"
+      >
+        Anzeigen
+      </button>
+    </div>
+
+    <!-- Neues Passwort (2) -->
+    <div class="mb-3">
+      {{ password_form.new_password2.label_tag }}
+      {{ password_form.new_password2 }}
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        onclick="togglePasswordVisibility('id_new_password2', this)"
+      >
+        Anzeigen
+      </button>
+    </div>
+
+    <button type="submit" name="change_password" class="btn btn-primary">
+      Passwort ändern
+    </button>
   </form>
 
   <hr>
@@ -36,10 +97,20 @@
         <td>{{ kategorie.hauptkategorie.name }}</td>
         <td>{{ kategorie.kategoriebezeichnung }}</td>
         <td>
-          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKategorieModal{{ kategorie.pk }}">
+          <button
+            type="button"
+            class="btn btn-warning btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#editKategorieModal{{ kategorie.pk }}"
+          >
             Bearbeiten
           </button>
-          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteKategorieModal{{ kategorie.pk }}">
+          <button
+            type="button"
+            class="btn btn-danger btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#deleteKategorieModal{{ kategorie.pk }}"
+          >
             Löschen
           </button>
         </td>
@@ -48,50 +119,96 @@
     </tbody>
   </table>
   
-  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createKategorieModal">
+  <button
+    type="button"
+    class="btn btn-success"
+    data-bs-toggle="modal"
+    data-bs-target="#createKategorieModal"
+  >
     Neue Kategorie hinzufügen
   </button>
 
-  <!-- Popup-Modal für Kategorie-Bearbeitung & Löschen -->
+  <!-- Edit & Delete Modals für jede Kategorie -->
   {% for kategorie in kategorien %}
-  <!-- Edit Modal -->
-  <div class="modal fade" id="editKategorieModal{{ kategorie.pk }}" tabindex="-1" aria-labelledby="editKategorieModalLabel{{ kategorie.pk }}" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="editKategorieModal{{ kategorie.pk }}"
+    tabindex="-1"
+    aria-labelledby="editKategorieModalLabel{{ kategorie.pk }}"
+    aria-hidden="true"
+  >
     <div class="modal-dialog">
       <div class="modal-content bg-dark text-light">
         <form method="post" action="{% url 'kategorie_update' kategorie.pk %}">
           {% csrf_token %}
           <div class="modal-header">
-            <h5 class="modal-title" id="editKategorieModalLabel{{ kategorie.pk }}">Kategorie bearbeiten</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            <h5 class="modal-title" id="editKategorieModalLabel{{ kategorie.pk }}">
+              Kategorie bearbeiten
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Schließen"
+            ></button>
           </div>
           <div class="modal-body">
             {% include 'core/kategorie_form_fields.html' with form=formulare_bearbeiten|dictkey:kategorie.pk %}
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-success">Speichern</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Abbrechen
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Delete Modal -->
-  <div class="modal fade" id="deleteKategorieModal{{ kategorie.pk }}" tabindex="-1" aria-labelledby="deleteKategorieModalLabel{{ kategorie.pk }}" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="deleteKategorieModal{{ kategorie.pk }}"
+    tabindex="-1"
+    aria-labelledby="deleteKategorieModalLabel{{ kategorie.pk }}"
+    aria-hidden="true"
+  >
     <div class="modal-dialog">
       <div class="modal-content bg-dark text-light">
         <form method="post" action="{% url 'kategorie_delete' kategorie.pk %}">
           {% csrf_token %}
           <div class="modal-header">
-            <h5 class="modal-title" id="deleteKategorieModalLabel{{ kategorie.pk }}">Kategorie löschen</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            <h5
+              class="modal-title"
+              id="deleteKategorieModalLabel{{ kategorie.pk }}"
+            >
+              Kategorie löschen
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Schließen"
+            ></button>
           </div>
           <div class="modal-body">
-            Möchtest du die Kategorie <strong>"{{ kategorie.kategoriebezeichnung }}"</strong> wirklich löschen?
+            Möchtest du die Kategorie
+            <strong>"{{ kategorie.kategoriebezeichnung }}"</strong>
+            wirklich löschen?
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-danger">Ja, löschen</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Abbrechen
+            </button>
           </div>
         </form>
       </div>
@@ -99,26 +216,60 @@
   </div>
   {% endfor %}
 
-  <!-- Create Modal -->
-  <div class="modal fade" id="createKategorieModal" tabindex="-1" aria-labelledby="createKategorieModalLabel" aria-hidden="true">
+  <!-- Modal: Neue Kategorie hinzufügen -->
+  <div
+    class="modal fade"
+    id="createKategorieModal"
+    tabindex="-1"
+    aria-labelledby="createKategorieModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog">
       <div class="modal-content bg-dark text-light">
         <form method="post" action="{% url 'kategorie_create' %}">
           {% csrf_token %}
           <div class="modal-header">
-            <h5 class="modal-title" id="createKategorieModalLabel">Neue Kategorie</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            <h5 class="modal-title" id="createKategorieModalLabel">
+              Neue Kategorie
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             {% include 'core/kategorie_form_fields.html' with form=form_create_kategorie %}
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Erstellen</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Abbrechen
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Passwort-Anzeigen/Verbergen-Funktion -->
+<script>
+function togglePasswordVisibility(fieldId, btn) {
+  const input = document.getElementById(fieldId);
+  if (!input) return;
+
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "Verbergen";
+  } else {
+    input.type = "password";
+    btn.textContent = "Anzeigen";
+  }
+}
+</script>
 {% endblock %}
