@@ -1,16 +1,28 @@
 /* Container für Budgetkarten */
 .budget-card {
     border-radius: 20px;
-    background-color: #343a40;
-    /* dunkles Grau passend zum Dark Mode */
+    background-color: #343a40; /* dunkles Grau passend zum Dark Mode */
     color: white;
     padding: 20px;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     transition: transform 0.2s ease-in-out;
+
+    /* Neu: Flex-Kind -> so kann die Karte sich voll ausdehnen,
+       wenn wir im HTML flex-fill benutzen. */
+    display: flex;
+    flex-direction: column;
 }
 
 .budget-card:hover {
     transform: scale(1.02);
+}
+
+/* Inhalt der Karte strecken, sodass Buttons unten sitzen */
+.budget-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* oder space-between, falls du Buttons am Rand haben willst */
 }
 
 /* Buttons innerhalb der Karten */
@@ -24,12 +36,7 @@
     font-weight: bold;
 }
 
-/* Restbetrag hervorheben */
-.budget-card p:nth-child(3) {
-    font-weight: bold;
-}
-
-/* Optional: Fortschrittsbalken */
+/* Progress-Bar (Restbetrag etc.) */
 .budget-progress {
     height: 8px;
     background-color: #6c757d;
@@ -37,31 +44,15 @@
     overflow: hidden;
     margin-top: 10px;
 }
-
-.budget-progress .used {
-    background-color: #dc3545;
-    height: 100%;
-    width: 70%;
-    /* Beispielwert – dynamisch setzen via Inline-Style */
-}
-
-/* Abstand zwischen Karten */
-@media (min-width: 768px) {
-    .budget-card {
-        margin-bottom: 2rem;
-    }
-}
-
-.budget-progress {
-    height: 8px;
-    background-color: #6c757d;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-
 .budget-progress .used {
     background-color: #dc3545;
     height: 100%;
     transition: width 0.3s ease-in-out;
+}
+
+/* Falls du zusätzlichen Abstand brauchst */
+@media (min-width: 768px) {
+    .budget-card {
+        margin-bottom: 2rem;
+    }
 }
