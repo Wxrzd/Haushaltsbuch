@@ -12,7 +12,7 @@
 <!-- Filter & Suchformulare nebeneinander -->
 <div class="d-flex mb-4" style="gap: 1rem;">
   <!-- Filter: Konto + Kategorie + Monat -->
-  <!-- Hier: "align-items-end" sorgt dafür, dass die Felder und Buttons auf einer Höhe sind -->
+  <!-- "align-items-end" sorgt dafür, dass die Felder und Button auf einer Höhe sind -->
   <form method="GET" class="row g-3 align-items-end" style="width:auto;">
     <div class="col-auto">
       <label for="konto">Konto:</label>
@@ -31,16 +31,21 @@
       <label for="kategorie">Kategorie:</label>
       <select name="kategorie" id="kategorie" class="form-select">
         <option value="">-- Alle Kategorien --</option>
-        {% for cat in kategorien %}
-          <option value="{{ cat.kategorienummer }}"
-            {% if cat.kategorienummer|stringformat:'s' == selected_kategorie %}selected{% endif %}>
-            {{ cat.kategoriebezeichnung }}
-          </option>
+        {% for haupt_name, unterkat_list in grouped_kategorien %}
+          <optgroup label="{{ haupt_name }}">
+            {% for kat_pk, kat_name in unterkat_list %}
+              <option value="{{ kat_pk }}"
+                {% if kat_pk|stringformat:'s' == selected_kategorie %}selected{% endif %}
+              >
+                {{ kat_name }}
+              </option>
+            {% endfor %}
+          </optgroup>
         {% endfor %}
       </select>
+      
     </div>
 
-    <!-- NEU: Monatseingabe (Flatpickr MonthSelect) -->
     <div class="col-auto">
       <label for="monat">Monat:</label>
       <input
@@ -52,6 +57,13 @@
       >
     </div>
 
+    <!-- Damit der Benutzer nicht die URL manuell anpassen muss,
+         übergeben wir die aktuell gesetzten Suchbegriffe (wenn vorhanden).
+         So bleiben sie erhalten, wenn man den Filter anwendet. -->
+    {% if search_query %}
+      <input type="hidden" name="search" value="{{ search_query }}">
+    {% endif %}
+
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Filtern</button>
     </div>
@@ -59,6 +71,19 @@
 
   <!-- Suchformular (unabhängig vom Monatsfilter) -->
   <form method="GET" class="row g-3 align-items-end" style="width:auto;">
+    <!-- Falls Konto/Kategorie/Monat gesetzt sind, behalten wir sie bei,
+         damit man beides kombinieren kann (Suche + Filter).
+         Wenn du das nicht willst, kannst du diese Hidden-Felder weglassen. -->
+    {% if selected_konto %}
+      <input type="hidden" name="konto" value="{{ selected_konto }}">
+    {% endif %}
+    {% if selected_kategorie %}
+      <input type="hidden" name="kategorie" value="{{ selected_kategorie }}">
+    {% endif %}
+    {% if selected_monat %}
+      <input type="hidden" name="monat" value="{{ selected_monat }}">
+    {% endif %}
+
     <div class="col-auto">
       <label for="search">Beschreibung:</label>
       <input
@@ -240,11 +265,13 @@
             </div>
           </div>
         </div>
+
       </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+</nav>
 
 <!-- Modal: Neue Einnahme -->
 <div
