@@ -11,40 +11,63 @@
 
 <!-- Filter & Suchformulare nebeneinander -->
 <div class="d-flex mb-4" style="gap: 1rem;">
-  <!-- Filter: Konto + Kategorie -->
-  <form method="GET" class="row g-3 align-items-center" style="width:auto;">
+  <!-- Filter: Konto + Kategorie + Monat -->
+  <!-- Hier: "align-items-end" sorgt dafür, dass die Felder und Buttons auf einer Höhe sind -->
+  <form method="GET" class="row g-3 align-items-end" style="width:auto;">
     <div class="col-auto">
       <label for="konto">Konto:</label>
       <select name="konto" id="konto" class="form-select">
         <option value="">-- Alle Konten --</option>
         {% for k in konten %}
-          <option value="{{ k.kontonummer }}" {% if k.kontonummer|stringformat:'s' == selected_konto %}selected{% endif %}>
+          <option value="{{ k.kontonummer }}"
+            {% if k.kontonummer|stringformat:'s' == selected_konto %}selected{% endif %}>
             {{ k.name }}
           </option>
         {% endfor %}
       </select>
     </div>
+
     <div class="col-auto">
       <label for="kategorie">Kategorie:</label>
       <select name="kategorie" id="kategorie" class="form-select">
         <option value="">-- Alle Kategorien --</option>
         {% for cat in kategorien %}
-          <option value="{{ cat.kategorienummer }}" {% if cat.kategorienummer|stringformat:'s' == selected_kategorie %}selected{% endif %}>
+          <option value="{{ cat.kategorienummer }}"
+            {% if cat.kategorienummer|stringformat:'s' == selected_kategorie %}selected{% endif %}>
             {{ cat.kategoriebezeichnung }}
           </option>
         {% endfor %}
       </select>
     </div>
+
+    <!-- NEU: Monatseingabe (Flatpickr MonthSelect) -->
+    <div class="col-auto">
+      <label for="monat">Monat:</label>
+      <input
+        type="text"
+        name="monat"
+        id="monat"
+        class="form-control monthpicker"
+        value="{{ selected_monat }}"
+      >
+    </div>
+
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Filtern</button>
     </div>
   </form>
 
-  <!-- Suche: Beschreibung -->
-  <form method="GET" class="row g-3 align-items-center" style="width:auto;">
+  <!-- Suchformular (unabhängig vom Monatsfilter) -->
+  <form method="GET" class="row g-3 align-items-end" style="width:auto;">
     <div class="col-auto">
       <label for="search">Beschreibung:</label>
-      <input type="text" name="search" id="search" class="form-control" value="{{ search_query }}">
+      <input
+        type="text"
+        name="search"
+        id="search"
+        class="form-control"
+        value="{{ search_query }}"
+      >
     </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-info">Suchen</button>
@@ -86,23 +109,51 @@
       <td>{{ buchung.beschreibung }}</td>
       <td>{{ buchung.kategorie.kategoriebezeichnung }}</td>
       <td>{{ buchung.konto.name }}</td>
-      <td>{% if buchung.vertrag %}{{ buchung.vertrag.name }}{% else %}-{% endif %}</td>
+      <td>
+        {% if buchung.vertrag %}
+          {{ buchung.vertrag.name }}
+        {% else %}
+          -
+        {% endif %}
+      </td>
       <td>
         <!-- Bearbeiten Button -->
-        <button type="button" class="btn-bearbeiten" data-bs-toggle="modal" data-bs-target="#modalEdit{{ buchung.pk }}">
+        <button
+          type="button"
+          class="btn-bearbeiten"
+          data-bs-toggle="modal"
+          data-bs-target="#modalEdit{{ buchung.pk }}"
+        >
           Bearbeiten
         </button>
 
         <!-- Bearbeiten Modal -->
-        <div class="modal fade" id="modalEdit{{ buchung.pk }}" tabindex="-1" aria-labelledby="modalEditLabel{{ buchung.pk }}" aria-hidden="true">
+        <div
+          class="modal fade"
+          id="modalEdit{{ buchung.pk }}"
+          tabindex="-1"
+          aria-labelledby="modalEditLabel{{ buchung.pk }}"
+          aria-hidden="true"
+        >
           <div class="modal-dialog">
             <div class="modal-content text-dark">
               <div class="modal-header">
-                <h5 class="modal-title" id="modalEditLabel{{ buchung.pk }}">Buchung bearbeiten</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                <h5 class="modal-title" id="modalEditLabel{{ buchung.pk }}">
+                  Buchung bearbeiten
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Schließen"
+                ></button>
               </div>
               <div class="modal-body">
-                <form id="formEdit{{ buchung.pk }}" method="POST" action="">
+                <form
+                  id="formEdit{{ buchung.pk }}"
+                  method="POST"
+                  action=""
+                >
                   {% csrf_token %}
                   <input type="hidden" name="formtype" value="bearbeiten">
                   <input type="hidden" name="buchung_id" value="{{ buchung.pk }}">
@@ -110,33 +161,80 @@
                 </form>
               </div>
               <div class="modal-footer">
-                <button type="submit" form="formEdit{{ buchung.pk }}" class="btn btn-primary">Speichern</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button
+                  type="submit"
+                  form="formEdit{{ buchung.pk }}"
+                  class="btn btn-primary"
+                >
+                  Speichern
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Abbrechen
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Löschen Button (optional) -->
-        <button type="button" class="btn-loeschen" data-bs-toggle="modal" data-bs-target="#modalDelete{{ buchung.pk }}">
+        <!-- Löschen Button -->
+        <button
+          type="button"
+          class="btn-loeschen"
+          data-bs-toggle="modal"
+          data-bs-target="#modalDelete{{ buchung.pk }}"
+        >
           Löschen
         </button>
 
-        <div class="modal fade" id="modalDelete{{ buchung.pk }}" tabindex="-1" aria-labelledby="modalDeleteLabel{{ buchung.pk }}" aria-hidden="true">
+        <!-- Löschen Modal -->
+        <div
+          class="modal fade"
+          id="modalDelete{{ buchung.pk }}"
+          tabindex="-1"
+          aria-labelledby="modalDeleteLabel{{ buchung.pk }}"
+          aria-hidden="true"
+        >
           <div class="modal-dialog">
             <div class="modal-content text-dark">
               <div class="modal-header">
-                <h5 class="modal-title" id="modalDeleteLabel{{ buchung.pk }}">Buchung löschen</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                <h5
+                  class="modal-title"
+                  id="modalDeleteLabel{{ buchung.pk }}"
+                >
+                  Buchung löschen
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Schließen"
+                ></button>
               </div>
               <div class="modal-body">
-                Möchtest du die Buchung <strong>"{{ buchung.beschreibung }}"</strong> wirklich löschen?
+                Möchtest du die Buchung
+                <strong>"{{ buchung.beschreibung }}"</strong>
+                wirklich löschen?
               </div>
               <div class="modal-footer">
-                <form method="POST" action="{% url 'buchung_delete' buchung.pk %}">
+                <form
+                  method="POST"
+                  action="{% url 'buchung_delete' buchung.pk %}"
+                >
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-danger">Ja, löschen</button>
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                  <button type="submit" class="btn btn-danger">
+                    Ja, löschen
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Abbrechen
+                  </button>
                 </form>
               </div>
             </div>
@@ -149,12 +247,25 @@
 </table>
 
 <!-- Modal: Neue Einnahme -->
-<div class="modal fade" id="modalEinnahme" tabindex="-1" aria-labelledby="modalEinnahmeLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="modalEinnahme"
+  tabindex="-1"
+  aria-labelledby="modalEinnahmeLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog">
     <div class="modal-content text-dark">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalEinnahmeLabel">Neue Einnahme</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        <h5 class="modal-title" id="modalEinnahmeLabel">
+          Neue Einnahme
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Schließen"
+        ></button>
       </div>
       <div class="modal-body">
         <form id="formEinnahme" method="POST">
@@ -164,20 +275,45 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="submit" form="formEinnahme" class="btn btn-primary">Speichern</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button
+          type="submit"
+          form="formEinnahme"
+          class="btn btn-primary"
+        >
+          Speichern
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Abbrechen
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Modal: Neue Ausgabe -->
-<div class="modal fade" id="modalAusgabe" tabindex="-1" aria-labelledby="modalAusgabeLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="modalAusgabe"
+  tabindex="-1"
+  aria-labelledby="modalAusgabeLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog">
     <div class="modal-content text-dark">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalAusgabeLabel">Neue Ausgabe</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        <h5 class="modal-title" id="modalAusgabeLabel">
+          Neue Ausgabe
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Schließen"
+        ></button>
       </div>
       <div class="modal-body">
         <form id="formAusgabe" method="POST">
@@ -187,8 +323,20 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="submit" form="formAusgabe" class="btn btn-primary">Speichern</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button
+          type="submit"
+          form="formAusgabe"
+          class="btn btn-primary"
+        >
+          Speichern
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Abbrechen
+        </button>
       </div>
     </div>
   </div>

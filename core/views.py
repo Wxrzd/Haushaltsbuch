@@ -94,29 +94,67 @@ def logout_view(request):
 
 @login_required
 def buchung_list(request):
-    buchungen = Buchung.objects.filter(konto__benutzer=request.user).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')
+    from datetime import date
+
+    # Alle Konten und Kategorien für die Filter-Formulare
     konten = Konto.objects.filter(benutzer=request.user)
     kategorien = Kategorie.objects.filter(benutzer=request.user)
 
+    selected_monat = request.GET.get('monat')
+    # Wenn kein Monat gegeben, dann aktueller Monat (Format YYYY-MM)
+    if not selected_monat:
+        selected_monat = date.today().strftime('%Y-%m')
+
+    # Jahr und Monat herauslösen
+    year, month = map(int, selected_monat.split('-'))
+
+    # Start- und Enddatum für diesen Monat
+    month_start = date(year, month, 1)
+    if month == 12:
+        next_month_start = date(year + 1, 1, 1)
+    else:
+        next_month_start = date(year, month + 1, 1)
+    # --- Ende Monatsfilter-Logik ---
+
+    # GET-Parameter für Konto, Kategorie, Suche
     selected_konto = request.GET.get('konto')
     selected_kategorie = request.GET.get('kategorie')
     search_query = request.GET.get('search')
 
+    # Alle Buchungen (für diesen Benutzer)
+    buchungen = Buchung.objects.filter(
+        konto__benutzer=request.user
+    ).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')
+
+    # Konto-Filter
     if selected_konto:
         buchungen = buchungen.filter(konto__kontonummer=selected_konto)
+
+    # Kategorie-Filter
     if selected_kategorie:
         buchungen = buchungen.filter(kategorie__kategorienummer=selected_kategorie)
+
+    # Wenn eine Suche aktiv ist, zeigen wir ALLE passenden Buchungen (ignorieren Monatsfilter).
+    # Falls KEINE Suche aktiv ist, nach Monat filtern.
     if search_query:
         buchungen = buchungen.filter(beschreibung__icontains=search_query)
+    else:
+        buchungen = buchungen.filter(
+            buchungsdatum__gte=month_start,
+            buchungsdatum__lt=next_month_start
+        )
 
+    # Formulare für Einnahme / Ausgabe
     form_einnahme = BuchungEinnahmeForm(user=request.user)
     form_ausgabe = BuchungAusgabeForm(user=request.user)
 
+    # Bearbeiten-Formulare zu jeder einzelnen Buchung
     formularliste_bearbeiten = [
         (buchung, BuchungForm(instance=buchung, user=request.user))
         for buchung in buchungen
     ]
 
+    # POST-Verarbeitung (neue Buchungen / Update bestehender Buchungen)
     if request.method == 'POST':
         formtype = request.POST.get('formtype')
         if formtype == 'einnahme':
@@ -131,7 +169,9 @@ def buchung_list(request):
                 return redirect('buchung_list')
         elif formtype == 'bearbeiten':
             buchung_id = request.POST.get('buchung_id')
-            buchung = get_object_or_404(Buchung, pk=buchung_id, konto__benutzer=request.user)
+            buchung = get_object_or_404(
+                Buchung, pk=buchung_id, konto__benutzer=request.user
+            )
             form = BuchungForm(request.POST, instance=buchung, user=request.user)
             if form.is_valid():
                 form.save()
@@ -147,8 +187,10 @@ def buchung_list(request):
         'selected_konto': selected_konto,
         'selected_kategorie': selected_kategorie,
         'search_query': search_query,
+        'selected_monat': selected_monat,  # Für das Value-Attribut im <input>
     }
     return render(request, 'core/buchung_list.html', context)
+
 
 @login_required
 def buchung_create(request):
