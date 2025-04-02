@@ -9,10 +9,8 @@
 {% block content %}
 <h2>Buchungen</h2>
 
-<!-- Filter & Suchformulare nebeneinander -->
+<!-- Filter & Suchformulare -->
 <div class="d-flex mb-4" style="gap: 1rem;">
-  <!-- Filter: Konto + Kategorie + Monat -->
-  <!-- "align-items-end" sorgt dafür, dass die Felder und Button auf einer Höhe sind -->
   <form method="GET" class="row g-3 align-items-end" style="width:auto;">
     <div class="col-auto">
       <label for="konto">Konto:</label>
@@ -57,9 +55,6 @@
       >
     </div>
 
-    <!-- Damit der Benutzer nicht die URL manuell anpassen muss,
-         übergeben wir die aktuell gesetzten Suchbegriffe (wenn vorhanden).
-         So bleiben sie erhalten, wenn man den Filter anwendet. -->
     {% if search_query %}
       <input type="hidden" name="search" value="{{ search_query }}">
     {% endif %}
@@ -69,11 +64,7 @@
     </div>
   </form>
 
-  <!-- Suchformular (unabhängig vom Monatsfilter) -->
   <form method="GET" class="row g-3 align-items-end" style="width:auto;">
-    <!-- Falls Konto/Kategorie/Monat gesetzt sind, behalten wir sie bei,
-         damit man beides kombinieren kann (Suche + Filter).
-         Wenn du das nicht willst, kannst du diese Hidden-Felder weglassen. -->
     {% if selected_konto %}
       <input type="hidden" name="konto" value="{{ selected_konto }}">
     {% endif %}
@@ -110,7 +101,7 @@
   </button>
 </div>
 
-<!-- Tabelle (Spaltenreihenfolge: Datum, Betrag, Beschreibung, Kategorie, Konto, Vertrag, Aktionen) -->
+<!-- Tabelle -->
 <table class="table table-dark table-striped">
   <thead>
     <tr>

@@ -2,14 +2,12 @@
 {% load static %}
 
 {% block extra_css %}
-<!-- Hier binden wir die neue CSS-Datei für das Vertragsmenü ein -->
 <link rel="stylesheet" href="{% static 'css/vertrag.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <h2>Vertragsübersicht</h2>
 
-<!-- Button zum Öffnen des Modals für einen neuen Vertrag -->
 <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalNewVertrag">
   Neuen Vertrag hinzufügen
 </button>

@@ -12,7 +12,6 @@
 <div class="einstellungen-container">
   <h2>Einstellungen</h2>
 
-  <!-- Passwort erfolgreich geändert? -->
   {% if request.GET.pwchanged == "1" %}
     <script>
       alert("Passwort wurde erfolgreich geändert!");
@@ -92,7 +91,6 @@
         <td>{{ kategorie.hauptkategorie.name }}</td>
         <td>{{ kategorie.kategoriebezeichnung }}</td>
         <td>
-          <!-- Bearbeiten-Button: btn-warning => btn-primary -->
           <button
             type="button"
             class="btn btn-primary btn-sm"

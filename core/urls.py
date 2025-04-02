@@ -1,5 +1,3 @@
-# urls.py
-
 from django.urls import path
 from .views import (
     home, buchung_list, buchung_create, buchung_update, buchung_delete,

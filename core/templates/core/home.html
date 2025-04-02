@@ -12,19 +12,13 @@
 
   <h2 class="mb-4">Übersicht</h2>
 
-  <!-- 
-    Erste Zeile mit Budgets, Konten, Verträgen 
-    align-items-stretch => Spalten/Container werden gestreckt
-  -->
+  <!-- Erste Zeile mit Budgets, Konten, Verträgen -->
   <div class="row gx-4 gy-4 home-section align-items-stretch">
     
-    <!-- Budgets als Tiles -->
     <div class="col-md-4 d-flex align-items-stretch">
-      <!-- d-flex flex-column => Inhalt in Spalte; mt-auto => Button unten -->
       <div class="card home-card p-3 w-100 d-flex flex-column">
         <h4>Budgets (aktueller Monat)</h4>
 
-        <!-- Symmetrische Anordnung als Grid -->
         <div class="row row-cols-1 row-cols-sm-2 g-2 mb-3">
           {% if budgets_mit_auswertung %}
             {% for b in budgets_mit_auswertung %}
@@ -62,12 +56,10 @@
       </div>
     </div>
 
-    <!-- Konten als Tiles -->
     <div class="col-md-4 d-flex align-items-stretch">
       <div class="card home-card p-3 w-100 d-flex flex-column">
         <h4>Konten</h4>
 
-        <!-- Symmetrische Anordnung für Konto-Tiles -->
         <div class="row row-cols-1 row-cols-sm-2 g-2 mb-3">
           {% if konten %}
             {% for k in konten %}
@@ -78,7 +70,6 @@
                 </div>
                 <div class="tile-body">
                   <span class="kontostand-label">Kontostand:</span>
-                  <!-- Schriftgröße in CSS angepasst (siehe home.css) -->
                   <span class="fw-bold kontostand-value">{{ k.kontostand }} €</span>
                 </div>
               </div>
@@ -130,7 +121,7 @@
       </div>
     </div>
 
-  </div> <!-- Ende der ersten Zeile -->
+  </div>
 
   <!-- Zweite Zeile: Letzte 8 Buchungen als Tabelle -->
   <div class="row gx-4 gy-4 home-section">

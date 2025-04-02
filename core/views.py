@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
-from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q, F
+from django.db.models import Sum, Q
 from django.urls import reverse
 from datetime import date
-from collections import defaultdict
 import calendar
 from .forms import get_kategorie_choices
 from .models import Buchung, Konto, Vertrag, Kategorie, Budget
@@ -107,12 +106,9 @@ from .models import Buchung, Konto, Kategorie
 
 @login_required
 def buchung_list(request):
-    # Konten und Kategorien laden (z.B. für Filter-Menüs)
     konten = Konto.objects.filter(benutzer=request.user)
-     # Gruppierte Kategorien holen (benutzerspezifisch & None)
     grouped_kategorien = get_kategorie_choices(request.user)
 
-    # Monat bestimmen (standard: aktueller Monat)
     selected_monat = request.GET.get('monat')
     if not selected_monat:
         selected_monat = date.today().strftime('%Y-%m')
@@ -124,12 +120,10 @@ def buchung_list(request):
     else:
         next_month_start = date(year, month + 1, 1)
 
-    # Weitere Filter-Parameter
     selected_konto = request.GET.get('konto')
     selected_kategorie = request.GET.get('kategorie')
     search_query = request.GET.get('search')
 
-    # Query mit select_related für weniger DB-Queries:
     buchungen_qs = (
         Buchung.objects
         .filter(konto__benutzer=request.user)
@@ -137,32 +131,25 @@ def buchung_list(request):
         .order_by('-buchungsdatum')
     )
 
-    # Konto-Filter
     if selected_konto:
         buchungen_qs = buchungen_qs.filter(konto__kontonummer=selected_konto)
 
-    # Kategorie-Filter
     if selected_kategorie:
         buchungen_qs = buchungen_qs.filter(kategorie__kategorienummer=selected_kategorie)
 
-    # Such-Filter => Wenn Suche aktiv, KEIN Monatsfilter
     if search_query:
         buchungen_qs = buchungen_qs.filter(beschreibung__icontains=search_query)
     else:
-        # Monatsfilter nur anwenden, wenn KEINE Suche
         buchungen_qs = buchungen_qs.filter(
             buchungsdatum__gte=month_start,
             buchungsdatum__lt=next_month_start
         )
 
-    # Aus dem QuerySet final alle Buchungen laden
     buchungen = list(buchungen_qs)
 
-    # Formulare für neue Einnahme/Ausgabe
     form_einnahme = BuchungEinnahmeForm(user=request.user)
     form_ausgabe = BuchungAusgabeForm(user=request.user)
 
-    # Bearbeiten-Formulare für jede Buchung
     formularliste_bearbeiten = [
         (buchung, BuchungForm(instance=buchung, user=request.user))
         for buchung in buchungen
@@ -194,7 +181,7 @@ def buchung_list(request):
                 return redirect('buchung_list')
 
     context = {
-        'buchungen': buchungen,  # Jetzt OHNE Paginator
+        'buchungen': buchungen,
         'formularliste_bearbeiten': formularliste_bearbeiten,
         'form_einnahme': form_einnahme,
         'form_ausgabe': form_ausgabe,
@@ -240,7 +227,6 @@ def buchung_delete(request, pk):
 
 @login_required
 def vertrag_list(request):
-    # Verarbeitung der POST-Anfragen (Neu, Bearbeiten, Löschen) wie bisher...
     if request.method == 'POST':
         formtype = request.POST.get('formtype')
         if formtype == 'neu':
@@ -263,7 +249,6 @@ def vertrag_list(request):
             vertrag.delete()
             return redirect('vertrag_list')
 
-    # Alle Verträge abrufen und die zugehörige Hauptkategorie mitschleppen
     vertraege = Vertrag.objects.filter(benutzer=request.user).select_related('kategorie__hauptkategorie')
 
     ausgaben_list = []
@@ -279,7 +264,6 @@ def vertrag_list(request):
         else:
             ausgaben_list.append((vertrag, form))
 
-    # Summen der Beträge pro Gruppe berechnen
     ausgaben_total = sum([vertrag.betrag for vertrag, _ in ausgaben_list])
     einnahmen_total = sum([vertrag.betrag for vertrag, _ in einnahmen_list])
     sparen_total   = sum([vertrag.betrag for vertrag, _ in sparen_list])
@@ -305,9 +289,9 @@ def vertrag_create(request):
             vertrag = form.save(commit=False)
             vertrag.benutzer = request.user
             vertrag.save()
-            return redirect('vertrag_list')  # Weiterleitung nach dem Speichern
+            return redirect('vertrag_list')
         else:
-            print(form.errors)  # Zeigt Fehler in der Konsole an
+            print(form.errors) 
     else:
         form = VertragForm(user=request.user)
 
@@ -365,10 +349,8 @@ def konto_create(request):
 
 @login_required
 def konto_update(request, pk):
-    # Hier ist die Anpassung:
     konto = get_object_or_404(Konto, pk=pk, benutzer=request.user)
     if request.method == 'POST':
-        # Hier ebenfalls: user=request.user
         form = KontoForm(request.POST, instance=konto, user=request.user)
         if form.is_valid():
             form.save()
@@ -496,7 +478,6 @@ def budget_delete(request, pk):
 def statistiken_view(request):
     today = date.today()
 
-    # Listen für die letzten 12 Monate
     months = []
     einnahmen = []
     ausgaben = []
@@ -548,16 +529,12 @@ def statistiken_view(request):
     ausgaben.reverse()
     sparen_ausgaben.reverse()
 
-    # ------------------------------------------
-    # FÜR DAS KREISDIAGRAMM (aktueller Monat):
-    # ------------------------------------------
     current_month_start = date(today.year, today.month, 1)
     if today.month == 12:
         next_month_start = date(today.year + 1, 1, 1)
     else:
         next_month_start = date(today.year, today.month + 1, 1)
 
-    # Hauptkategorien ermitteln (Standard und benutzerspezifisch)
     unterkategorien = Kategorie.objects.filter(
         Q(benutzer=request.user) | Q(benutzer=None)
     ).select_related('hauptkategorie')
@@ -568,7 +545,6 @@ def statistiken_view(request):
     for kat in unterkategorien:
         hauptname = kat.hauptkategorie.name if kat.hauptkategorie else None
 
-        # Hauptkategorie "Lohn/Gehalt" und "Sparen" ausschließen
         if hauptname in ["Einnahmen", "Sparen"]:
             continue
 
@@ -584,15 +560,13 @@ def statistiken_view(request):
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
 
-        # WICHTIG: Nur wenn > 0, wird sie übernommen
         if hauptname and summe > 0:
             hauptkategorie_summen[hauptname] += float(summe)
 
-    # Nur Kategorien mit tatsächlichen Ausgaben sind jetzt enthalten
     pie_labels = list(hauptkategorie_summen.keys())
     pie_data = list(hauptkategorie_summen.values())
 
-    if not pie_data:  # Fallback, falls kein Eintrag vorhanden
+    if not pie_data: 
         pie_labels = ["Keine Ausgaben"]
         pie_data = [0]
 
@@ -615,16 +589,12 @@ def einstellungen(request):
             if password_form.is_valid():
                 password_form.save()
                 update_session_auth_hash(request, password_form.user)
-                # Erfolg -> Weiterleitung mit Parameter, damit wir ein "Erfolg"-Popup zeigen
                 return redirect(reverse("einstellungen") + "?pwchanged=1")
             else:
-                # Form ist invalid => zeige Fehler (z. B. falsches altes Passwort oder Mismatch)
-                # => Wir machen hier NICHTS weiteres, sondern übergeben das Form mit Errors zurück
                 pass
     else:
         password_form = PasswordChangeForm(request.user)
 
-    # Kategorien-Code wie gehabt
     from .forms import KategorieForm
     kategorien = Kategorie.objects.filter(benutzer=request.user)
     form_create_kategorie = KategorieForm(user=request.user)

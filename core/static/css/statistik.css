@@ -1,4 +1,3 @@
-/* Statistik Cards angepasst nach konto.css */
 .statistik-card {
   border-radius: 20px;
   background-color: #343a40;
@@ -19,16 +18,14 @@
   margin-bottom: 0.5rem;
 }
 
-/* Größe der Canvas-Elemente für Diagramme */
 .statistik-card canvas {
-  max-height: 300px; /* Höhe anpassen nach Wunsch */
+  max-height: 300px; 
   width: 100% !important;
   height: auto !important;
 }
 
-/* Spezielle Anpassung für das Kreisdiagramm */
 #kategorieChart {
-  max-height: 250px; /* kleineres Kreisdiagramm */
+  max-height: 250px; 
   max-width: 250px;
-  margin: auto; /* Zentrieren */
+  margin: auto; 
 }

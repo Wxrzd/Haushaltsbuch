@@ -1,10 +1,8 @@
-/* Dashboard Styling angepasst für die neue Base Seite */
 body {
   background-color: #121212;
   color: #ffffff;
 }
 
-/* Sidebar Styling */
 .sidebar {
   width: 250px;
   height: 100vh;
@@ -37,7 +35,6 @@ body {
   width: 100%;
 }
 
-/* Main Content Bereich */
 .container-fluid {
   margin-left: 270px;
   padding: 20px;
@@ -63,7 +60,6 @@ body {
   float: right;
 }
 
-/* Tabelle Styling */
 .table-dark {
   background-color: #1e1e1e;
 }
@@ -77,7 +73,6 @@ body {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Navbar Anpassungen */
 .navbar {
   background-color: #1e1e1e !important;
   padding: 15px;

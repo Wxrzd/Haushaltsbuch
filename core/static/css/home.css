@@ -6,7 +6,6 @@
   margin-bottom: 30px;
 }
 
-/* Haupt-Karten (die großen Container um Budgets, Konten, Verträge, Buchungen) */
 .home-card {
   background-color: #2c2c2c;
   border: 1px solid #3a3a3a;
@@ -25,14 +24,12 @@
   font-weight: bold;
 }
 
-/* Kachel-Layout für die einzelnen Budget-/Konto-/Vertrags-Elemente */
 .tile-card {
   background-color: #3a3a3a;
   border: 1px solid #444;
   border-radius: 8px;
   color: #fff;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  /* Wichtig, damit sie sich an die volle Höhe in der Grid-Spalte anpasst */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -58,7 +55,6 @@
   margin-top: 2px;
 }
 
-/* Größere Schrift für Kontostände */
 .kontostand-value {
   font-size: 1.2rem;
   margin-left: 5px;

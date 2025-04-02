@@ -37,12 +37,11 @@
     {% with budget=eintrag.obj %}
     <div class="col-md-4 d-flex">
       <div class="card budget-card mb-4 flex-fill">
-        <div class="card-body">
+        <div class="card-body d-flex flex-column">
           <h5 class="card-title">{{ budget.name }}</h5>
           <p>Gesamtbetrag: {{ budget.betrag }} €</p>
           <p>Restbetrag: {{ eintrag.rest }} €</p>
 
-          <!-- Balkenanzeige -->
           <div class="budget-progress mt-2">
             <div
               class="used"
@@ -67,9 +66,7 @@
             {% endif %}
           </p>
 
-          <!-- Buttons mit Abstand -->
-          <div class="d-flex gap-2 mt-2">
-            <!-- Bearbeiten-Button: btn-warning => btn-primary -->
+          <div class="d-flex gap-2 mt-auto">
             <button
               type="button"
               class="btn btn-primary btn-sm"

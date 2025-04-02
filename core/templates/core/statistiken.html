@@ -108,7 +108,7 @@
     }
   });
 
-  // 4) Kreisdiagramm (Pie) für Ausgaben nach Hauptkategorien
+  // 4) Kreisdiagramm (Pie) für Ausgaben nach Kategorien
   const pieLabels = {{ pie_labels|safe }};
   const pieData = {{ pie_data|safe }};
 
@@ -129,8 +129,8 @@
       plugins: {
         legend: {
           display: true,
-          position: 'top',     // Legende oben
-          align: 'center',     // Horizontal ausgerichtet
+          position: 'top',  
+          align: 'center',    
           labels: {
             boxWidth: 12,
             font: {
@@ -155,5 +155,4 @@
   });
 </script>
 </script>
-
 {% endblock content %}

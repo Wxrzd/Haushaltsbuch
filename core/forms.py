@@ -133,7 +133,6 @@ class BuchungEinnahmeForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Buchungsart wird fest auf Einnahme gesetzt
         self.instance.buchungsart = 'Einnahme'
         if user:
             self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
@@ -169,7 +168,6 @@ class BuchungAusgabeForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Buchungsart wird fest auf Ausgabe gesetzt
         self.instance.buchungsart = 'Ausgabe'
         if user:
             self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
@@ -182,7 +180,6 @@ class KontoForm(forms.ModelForm):
         fields = ['name', 'kontotyp']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            # Anstelle von forms.Select => forms.TextInput
             'kontotyp': forms.TextInput(attrs={'class': 'form-control'}),
         }
     
@@ -199,7 +196,6 @@ class KontoForm(forms.ModelForm):
         return konto
 
 class VertragForm(forms.ModelForm):
-    # Diese beiden Felder überschreiben wir, damit wir ein format und input_formats angeben können:
     startdatum = forms.DateField(
         widget=forms.DateInput(
             attrs={'type': 'date'},  
@@ -231,7 +227,6 @@ class VertragForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Konto- und Kategorienauswahl einschränken:
         if user:
             self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
             self.fields['kategorie'].choices = get_kategorie_choices(user)

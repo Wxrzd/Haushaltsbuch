@@ -1,6 +1,3 @@
-/* Einstellungen-Styles */
-
-/* Entfernt das "Tile"-Aussehen (Hintergrundfarbe, Rahmen, max-width, zentrierte Ausrichtung) */
 .einstellungen-container {
     margin: 0;
     padding: 20px;

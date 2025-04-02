@@ -6,8 +6,6 @@
 <form method="POST">
     {% csrf_token %}
     <table>
-      <!-- Wir gehen hier von der Reihenfolge in form.as_table aus.
-           Wenn du es manuell anpassen willst, schreibst du die Felder einzeln: -->
       {{ form.buchungsdatum.errors }}<tr><th>Datum</th><td>{{ form.buchungsdatum }}</td></tr>
       {{ form.betrag.errors }}<tr><th>Betrag</th><td>{{ form.betrag }}</td></tr>
       {{ form.beschreibung.errors }}<tr><th>Beschreibung</th><td>{{ form.beschreibung }}</td></tr>
@@ -15,7 +13,6 @@
       {{ form.konto.errors }}<tr><th>Konto</th><td>{{ form.konto }}</td></tr>
       {{ form.vertrag.errors }}<tr><th>Vertrag</th><td>{{ form.vertrag }}</td></tr>
 
-      <!-- Falls das Formular BuchungForm hat ein 'buchungsart' -->
       {% if form.fields.buchungsart %}
         {{ form.buchungsart.errors }}<tr><th>Art</th><td>{{ form.buchungsart }}</td></tr>
       {% endif %}

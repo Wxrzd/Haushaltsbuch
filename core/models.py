@@ -64,9 +64,8 @@ class Kategorie(models.Model):
         return f"{self.hauptkategorie.name} > {self.kategoriebezeichnung}"
 
 
-#
-# HILFSFUNKTION FÜR INTERVALL-BERECHNUNG
-#
+
+# Hilfsfunktion zum Hinzufügen eines Intervalls zu einem Datum
 def _add_interval(datum: date, intervall: str) -> date:
     """Erhöht ein Datum um den angegebenen Intervallschritt."""
     if intervall == "täglich":
@@ -74,15 +73,12 @@ def _add_interval(datum: date, intervall: str) -> date:
     elif intervall == "wöchentlich":
         return datum + timedelta(weeks=1)
     elif intervall == "monatlich":
-        # nächster Monat, gleicher Tag so gut wie möglich
         month = datum.month + 1
         year = datum.year
         day = datum.day
         if month > 12:
             month = 1
             year += 1
-        # mögliche Problemfälle (z.B. 31. im Februar) behandeln
-        # indem wir ggf. den letzten möglichen Tag im Zielmonat nehmen
         try:
             return date(year, month, day)
         except ValueError:
@@ -90,14 +86,11 @@ def _add_interval(datum: date, intervall: str) -> date:
             last_day = calendar.monthrange(year, month)[1]
             return date(year, month, last_day)
     elif intervall == "jährlich":
-        # ein Jahr später, gleicher Monat und Tag wenn möglich
         try:
             return date(datum.year + 1, datum.month, datum.day)
         except ValueError:
-            # 29. Feb in Nicht-Schaltjahr -> 28. Feb
             if datum.month == 2 and datum.day == 29:
                 return date(datum.year + 1, 2, 28)
-    # Fallback
     return datum
 
 
@@ -130,7 +123,6 @@ class Vertrag(models.Model):
             return None
 
         pruef_datum = self.startdatum
-        # so lange im Intervall weiter springen, bis wir >= heute
         while pruef_datum < date.today():
             naechstes = _add_interval(pruef_datum, self.intervall)
             if naechstes > self.ablaufdatum:
@@ -146,7 +138,7 @@ class Vertrag(models.Model):
         from .models import Buchung
         next_date = self.naechste_buchung
         if not next_date:
-            return  # es ist nichts mehr offen oder Vertrag ist abgelaufen
+            return
 
         Buchung.objects.create(
             betrag=self.betrag,
@@ -156,8 +148,6 @@ class Vertrag(models.Model):
             vertrag=self,
             kategorie=self.kategorie
         )
-        # ACHTUNG: kein Speichern eines naechsten Datums in der DB,
-        # da wir es ja jetzt dynamisch berechnen.
 
 class Buchung(models.Model):
     BETRAGSTYPEN = (
