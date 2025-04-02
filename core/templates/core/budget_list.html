@@ -44,8 +44,14 @@
           <p>Gesamtbetrag: {{ budget.betrag }} €</p>
           <p>Restbetrag: {{ eintrag.rest }} €</p>
 
+          <!-- Balken-Farbe abhängig vom Restbetrag -->
           <div class="budget-progress mt-2">
-            <div class="used" style="width: {{ eintrag.prozent }}%"></div>
+            <div class="used"
+              style="
+                width: {{ eintrag.prozent }}%;
+                background-color: {% if eintrag.rest > 0 %}#198754{% else %}#dc3545{% endif %};
+              ">
+            </div>
           </div>
           <small>{{ eintrag.prozent }} % verbraucht</small>
 
@@ -62,25 +68,25 @@
             {% endif %}
           </p>
 
-          <!-- Button: Bearbeiten -->
-          <button
-            type="button"
-            class="btn btn-warning btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#editBudgetModal{{ budget.id }}"
-          >
-            Bearbeiten
-          </button>
-
-          <!-- Button: Löschen -->
-          <button
-            type="button"
-            class="btn btn-danger btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#deleteBudgetModal{{ budget.id }}"
-          >
-            Löschen
-          </button>
+          <!-- Buttons mit Abstand -->
+          <div class="d-flex gap-2 mt-2">
+            <button
+              type="button"
+              class="btn btn-warning btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#editBudgetModal{{ budget.id }}"
+            >
+              Bearbeiten
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#deleteBudgetModal{{ budget.id }}"
+            >
+              Löschen
+            </button>
+          </div>
         </div>
       </div>
     </div>

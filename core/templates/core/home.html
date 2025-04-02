@@ -19,20 +19,17 @@
   <div class="row gx-4 gy-4 home-section align-items-stretch">
     
     <!-- Budgets als Tiles -->
-    <!-- col-md-4 + d-flex + align-items-stretch => Karte wird auf die gleiche Höhe gezogen -->
     <div class="col-md-4 d-flex align-items-stretch">
-      <!-- 
-        Card selbst mit h-100 oder flex-Klassen, damit sie sich füllt. 
-        Falls du noch mehr Kontrolle brauchst, kannst du "d-flex flex-column" hinzufügen. 
-      -->
-      <div class="card home-card p-3 w-100">
+      <!-- d-flex flex-column => Inhalt in Spalte; mt-auto => Button unten -->
+      <div class="card home-card p-3 w-100 d-flex flex-column">
         <h4>Budgets (aktueller Monat)</h4>
 
-        <!-- Container für Budget-Kacheln -->
-        <div class="d-flex flex-wrap gap-2">
+        <!-- Symmetrische Anordnung als Grid -->
+        <div class="row row-cols-1 row-cols-sm-2 g-2 mb-3">
           {% if budgets_mit_auswertung %}
             {% for b in budgets_mit_auswertung %}
-              <div class="card tile-card p-2">
+            <div class="col">
+              <div class="card tile-card p-2 h-100">
                 <div class="tile-header">
                   <strong>{{ b.obj.name }}</strong>
                 </div>
@@ -40,7 +37,7 @@
                   Verbrauch: {{ b.verbrauch }} € / {{ b.obj.betrag }} €
                   <div class="progress mt-1" style="height: 8px;">
                     <div class="progress-bar 
-                      {% if b.prozent < 80 %}bg-success{% elif b.prozent < 100 %}bg-warning{% else %}bg-danger{% endif %}"
+                      {% if b.rest > 0 %}bg-success{% else %}bg-danger{% endif %}"
                       role="progressbar"
                       style="width: {{ b.prozent }}%;"
                       aria-valuenow="{{ b.prozent }}"
@@ -51,37 +48,44 @@
                   <div class="restbetrag">Rest: {{ b.rest }} €</div>
                 </div>
               </div>
+            </div>
             {% endfor %}
           {% else %}
-            <p>Keine Budgets angelegt.</p>
+            <p class="text-muted">Keine Budgets angelegt.</p>
           {% endif %}
-        </div> <!-- Ende .d-flex -->
+        </div>
 
-        <div class="mt-3 text-end">
+        <!-- Button ganz unten -->
+        <div class="mt-auto text-end">
           <a href="{% url 'budget_list' %}" class="btn btn-secondary">Alle Budgets</a>
         </div>
       </div>
     </div>
 
-    <!-- Konten als Tiles + Anzeige Summe Kontostände -->
+    <!-- Konten als Tiles -->
     <div class="col-md-4 d-flex align-items-stretch">
-      <div class="card home-card p-3 w-100">
+      <div class="card home-card p-3 w-100 d-flex flex-column">
         <h4>Konten</h4>
 
-        <div class="d-flex flex-wrap gap-2">
+        <!-- Symmetrische Anordnung für Konto-Tiles -->
+        <div class="row row-cols-1 row-cols-sm-2 g-2 mb-3">
           {% if konten %}
             {% for k in konten %}
-              <div class="card tile-card p-2">
+            <div class="col">
+              <div class="card tile-card p-2 h-100">
                 <div class="tile-header">
                   <strong>{{ k.name }}</strong>
                 </div>
                 <div class="tile-body">
-                  Kontostand: <span class="fw-bold">{{ k.kontostand }} €</span>
+                  <span class="kontostand-label">Kontostand:</span>
+                  <!-- Schriftgröße in CSS angepasst (siehe home.css) -->
+                  <span class="fw-bold kontostand-value">{{ k.kontostand }} €</span>
                 </div>
               </div>
+            </div>
             {% endfor %}
           {% else %}
-            <p>Keine Konten vorhanden.</p>
+            <p class="text-muted">Keine Konten vorhanden.</p>
           {% endif %}
         </div>
 
@@ -94,7 +98,8 @@
           </div>
         {% endif %}
 
-        <div class="mt-2 text-end">
+        <!-- Button unten -->
+        <div class="mt-auto text-end">
           <a href="{% url 'konto_list' %}" class="btn btn-secondary">Alle Konten</a>
         </div>
       </div>
@@ -102,7 +107,7 @@
 
     <!-- Verträge in Listenform -->
     <div class="col-md-4 d-flex align-items-stretch">
-      <div class="card home-card p-3 w-100">
+      <div class="card home-card p-3 w-100 d-flex flex-column">
         <h4>Anstehende Vertragszahlungen</h4>
 
         {% if vertraege_ausstehend %}
@@ -116,16 +121,16 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p>Zurzeit keine Verträge hinterlegt.</p>
+          <p class="text-muted">Zurzeit keine Verträge hinterlegt.</p>
         {% endif %}
 
-        <div class="mt-3 text-end">
+        <div class="mt-auto text-end">
           <a href="{% url 'vertrag_list' %}" class="btn btn-secondary">Alle Verträge</a>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Ende der ersten Zeile -->
+
+  </div> <!-- Ende der ersten Zeile -->
 
   <!-- Zweite Zeile: Letzte 8 Buchungen als Tabelle -->
   <div class="row gx-4 gy-4 home-section">
@@ -168,7 +173,7 @@
             </tbody>
           </table>
         {% else %}
-          <p>Keine Buchungen vorhanden.</p>
+          <p class="text-muted">Keine Buchungen vorhanden.</p>
         {% endif %}
         
         <div class="mt-3 text-end">

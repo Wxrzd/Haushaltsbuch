@@ -32,6 +32,10 @@
   border-radius: 8px;
   color: #fff;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  /* Wichtig, damit sie sich an die volle Höhe in der Grid-Spalte anpasst */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .tile-card:hover {
@@ -52,4 +56,14 @@
 .restbetrag {
   font-weight: 600;
   margin-top: 2px;
+}
+
+/* Größere Schrift für Kontostände */
+.kontostand-value {
+  font-size: 1.2rem;
+  margin-left: 5px;
+}
+
+.summe-kontostaende {
+  font-size: 1.1rem;
 }
