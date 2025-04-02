@@ -19,6 +19,9 @@ from .forms import (
     BudgetForm
 )
 
+
+
+# Home Views
 @login_required
 def home(request):
     aktueller_monat = date.today().replace(day=1)
@@ -62,6 +65,9 @@ def home(request):
     }
     return render(request, 'core/home.html', context)
 
+
+
+# Authentication Views
 def registrierung_view(request):
     if request.method == 'POST':
         form = RegistrierungsForm(request.POST)
@@ -94,6 +100,9 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+
+
+# Buchung Views
 @login_required
 def buchung_list(request):
     konten = Konto.objects.filter(benutzer=request.user)
@@ -215,6 +224,9 @@ def buchung_delete(request, pk):
         buchung.delete()
     return redirect('buchung_list')
 
+
+
+# Vertrag Views
 @login_required
 def vertrag_list(request):
     if request.method == 'POST':
@@ -305,6 +317,9 @@ def vertrag_delete(request, pk):
         return redirect('vertrag_list')
     return render(request, 'core/vertrag_confirm_delete.html', {'vertrag': vertrag})
 
+
+
+# Konto Views
 @login_required
 def konto_list(request):
     konten = Konto.objects.filter(benutzer=request.user)
@@ -356,6 +371,9 @@ def konto_delete(request, pk):
         return redirect('konto_list')
     return render(request, 'core/konto_confirm_delete.html', {'konto': konto})
 
+
+
+# Kategorie Views
 @login_required
 def kategorie_list(request):
     kategorien = Kategorie.objects.filter(benutzer=request.user)
@@ -394,6 +412,9 @@ def kategorie_delete(request, pk):
         return redirect('kategorie_list')
     return render(request, 'core/kategorie_confirm_delete.html', {'kategorie': kategorie})
 
+
+
+# Budget Views
 @login_required
 def budget_list(request):
     monat = request.GET.get('monat')
@@ -461,6 +482,9 @@ def budget_delete(request, pk):
         return redirect('budget_list')
     return render(request, 'core/budget_confirm_delete.html', {'budget': budget})
 
+
+
+# Statistik View
 @login_required
 def statistiken_view(request):
     today = date.today()
@@ -567,6 +591,9 @@ def statistiken_view(request):
     
     return render(request, 'core/statistiken.html', context)
 
+
+
+# Einstellungen View
 @login_required
 def einstellungen(request):
     if request.method == "POST":
