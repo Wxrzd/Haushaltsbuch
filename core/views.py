@@ -23,7 +23,7 @@ from .forms import (
 def home(request):
     aktueller_monat = date.today().replace(day=1)
     budgets = Budget.objects.filter(benutzer=request.user)
-    
+
     budgets_mit_auswertung = []
     for budget in budgets:
         verbraucht = budget.berechne_ausgaben(aktueller_monat)
@@ -31,26 +31,27 @@ def home(request):
         prozent = 0
         if budget.betrag > 0:
             prozent = (verbraucht / budget.betrag) * 100
-        
+
         budgets_mit_auswertung.append({
             'obj': budget,
             'rest': rest,
             'verbrauch': verbraucht,
             'prozent': round(prozent),
         })
-    
+
     konten = Konto.objects.filter(benutzer=request.user)
     sum_kontostaende = 0
     for k in konten:
         k.kontostand = k.berechne_kontostand()
         sum_kontostaende += k.kontostand
-    
-    vertraege_ausstehend = Vertrag.objects.filter(benutzer=request.user).order_by('ablaufdatum')[:3]
-    
+    alle_vertraege = list(Vertrag.objects.filter(benutzer=request.user))
+    alle_vertraege = [v for v in alle_vertraege if v.naechste_buchung is not None]
+    alle_vertraege.sort(key=lambda x: x.naechste_buchung)
+    vertraege_ausstehend = alle_vertraege[:4]
     letzte_buchungen = Buchung.objects.filter(
         konto__benutzer=request.user
     ).select_related('konto', 'vertrag', 'kategorie').order_by('-buchungsdatum')[:8]
-    
+
     context = {
         'budgets_mit_auswertung': budgets_mit_auswertung,
         'aktueller_monat': aktueller_monat,
@@ -75,9 +76,9 @@ def registrierung_view(request):
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
-
-    form = AuthenticationForm(data=request.POST or None)
     
+    form = AuthenticationForm(data=request.POST or None)
+
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
@@ -92,17 +93,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-from django.core.paginator import Paginator
-from datetime import date
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .forms import (
-    BuchungForm,
-    BuchungEinnahmeForm,
-    BuchungAusgabeForm,
-)
-from .models import Buchung, Konto, Kategorie
 
 @login_required
 def buchung_list(request):
@@ -133,10 +123,10 @@ def buchung_list(request):
 
     if selected_konto:
         buchungen_qs = buchungen_qs.filter(konto__kontonummer=selected_konto)
-
+    
     if selected_kategorie:
         buchungen_qs = buchungen_qs.filter(kategorie__kategorienummer=selected_kategorie)
-
+    
     if search_query:
         buchungen_qs = buchungen_qs.filter(beschreibung__icontains=search_query)
     else:
@@ -144,18 +134,17 @@ def buchung_list(request):
             buchungsdatum__gte=month_start,
             buchungsdatum__lt=next_month_start
         )
-
+    
     buchungen = list(buchungen_qs)
-
+    
     form_einnahme = BuchungEinnahmeForm(user=request.user)
     form_ausgabe = BuchungAusgabeForm(user=request.user)
-
+    
     formularliste_bearbeiten = [
         (buchung, BuchungForm(instance=buchung, user=request.user))
         for buchung in buchungen
     ]
-
-    # POST-Verarbeitung (neue Buchungen / Update bestehender Buchungen)
+    
     if request.method == 'POST':
         formtype = request.POST.get('formtype')
         if formtype == 'einnahme':
@@ -163,13 +152,13 @@ def buchung_list(request):
             if form_einnahme.is_valid():
                 form_einnahme.save()
                 return redirect('buchung_list')
-
+    
         elif formtype == 'ausgabe':
             form_ausgabe = BuchungAusgabeForm(request.POST, user=request.user)
             if form_ausgabe.is_valid():
                 form_ausgabe.save()
                 return redirect('buchung_list')
-
+    
         elif formtype == 'bearbeiten':
             buchung_id = request.POST.get('buchung_id')
             buchung = get_object_or_404(
@@ -179,13 +168,13 @@ def buchung_list(request):
             if form.is_valid():
                 form.save()
                 return redirect('buchung_list')
-
+    
     context = {
         'buchungen': buchungen,
         'formularliste_bearbeiten': formularliste_bearbeiten,
         'form_einnahme': form_einnahme,
         'form_ausgabe': form_ausgabe,
-
+        
         'konten': konten,
         'grouped_kategorien': grouped_kategorien,
         'selected_konto': selected_konto,
@@ -193,6 +182,7 @@ def buchung_list(request):
         'selected_monat': selected_monat,
         'search_query': search_query,
     }
+
     return render(request, 'core/buchung_list.html', context)
 
 @login_required
@@ -248,9 +238,9 @@ def vertrag_list(request):
             vertrag = get_object_or_404(Vertrag, pk=vertrag_id, benutzer=request.user)
             vertrag.delete()
             return redirect('vertrag_list')
-
+    
     vertraege = Vertrag.objects.filter(benutzer=request.user).select_related('kategorie__hauptkategorie')
-
+    
     ausgaben_list = []
     einnahmen_list = []
     sparen_list = []
@@ -263,13 +253,12 @@ def vertrag_list(request):
             sparen_list.append((vertrag, form))
         else:
             ausgaben_list.append((vertrag, form))
-
+    
     ausgaben_total = sum([vertrag.betrag for vertrag, _ in ausgaben_list])
     einnahmen_total = sum([vertrag.betrag for vertrag, _ in einnahmen_list])
-    sparen_total   = sum([vertrag.betrag for vertrag, _ in sparen_list])
-
+    sparen_total = sum([vertrag.betrag for vertrag, _ in sparen_list])
     new_form = VertragForm(user=request.user)
-
+    
     return render(request, 'core/vertrag_list.html', {
         'ausgaben_list': ausgaben_list,
         'einnahmen_list': einnahmen_list,
@@ -279,7 +268,6 @@ def vertrag_list(request):
         'einnahmen_total': einnahmen_total,
         'sparen_total': sparen_total,
     })
-
 
 @login_required
 def vertrag_create(request):
@@ -291,10 +279,10 @@ def vertrag_create(request):
             vertrag.save()
             return redirect('vertrag_list')
         else:
-            print(form.errors) 
+            print(form.errors)
     else:
         form = VertragForm(user=request.user)
-
+    
     return render(request, 'core/vertrag_form.html', {'form': form})
 
 @login_required
@@ -334,6 +322,7 @@ def konto_list(request):
         'form_create': form_create,
         'formulare_bearbeiten': formulare_bearbeiten,
     }
+
     return render(request, 'core/konto_list.html', context)
 
 @login_required
@@ -407,18 +396,16 @@ def kategorie_delete(request, pk):
 
 @login_required
 def budget_list(request):
-    from datetime import date
-
     monat = request.GET.get('monat')
     if monat:
         jahr, monat_num = map(int, monat.split('-'))
         aktueller_monat = date(jahr, monat_num, 1)
     else:
         aktueller_monat = date.today().replace(day=1)
-
+    
     budgets = Budget.objects.filter(benutzer=request.user)
     form_create = BudgetForm(user=request.user)
-
+    
     budgets_mit_auswertung = []
     for budget in budgets:
         verbraucht = budget.berechne_ausgaben(aktueller_monat)
@@ -430,11 +417,11 @@ def budget_list(request):
             'verbrauch': verbraucht,
             'prozent': round(prozent),
         })
-
+    
     formulare_bearbeiten = {
         b.id: BudgetForm(instance=b, user=request.user) for b in budgets
     }
-
+    
     return render(request, 'core/budget_list.html', {
         'budgets': budgets,
         'budgets_mit_auswertung': budgets_mit_auswertung,
@@ -477,39 +464,39 @@ def budget_delete(request, pk):
 @login_required
 def statistiken_view(request):
     today = date.today()
-
+    
     months = []
     einnahmen = []
     ausgaben = []
     sparen_ausgaben = []
-
+    
     for i in range(12):
         m = today.month - i
         y = today.year
         if m <= 0:
             m += 12
             y -= 1
-
+    
         month_start = date(y, m, 1)
         if m == 12:
             next_month_start = date(y + 1, 1, 1)
         else:
             next_month_start = date(y, m + 1, 1)
-
+    
         sum_einnahmen = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Einnahme',
                     buchungsdatum__gte=month_start, buchungsdatum__lt=next_month_start)
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
-
+    
         sum_ausgaben = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
                     buchungsdatum__gte=month_start, buchungsdatum__lt=next_month_start)
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
-
+    
         sum_sparen = (
             Buchung.objects
             .filter(konto__benutzer=request.user, buchungsart='Ausgabe',
@@ -517,37 +504,37 @@ def statistiken_view(request):
                     kategorie__kategoriebezeichnung__iexact='Sparen')
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
-
+    
         month_name = f"{calendar.month_abbr[m]} {y}"
         months.append(month_name)
         einnahmen.append(float(sum_einnahmen))
         ausgaben.append(float(sum_ausgaben))
         sparen_ausgaben.append(float(sum_sparen))
-
+    
     months.reverse()
     einnahmen.reverse()
     ausgaben.reverse()
     sparen_ausgaben.reverse()
-
+    
     current_month_start = date(today.year, today.month, 1)
     if today.month == 12:
         next_month_start = date(today.year + 1, 1, 1)
     else:
         next_month_start = date(today.year, today.month + 1, 1)
-
+    
     unterkategorien = Kategorie.objects.filter(
         Q(benutzer=request.user) | Q(benutzer=None)
     ).select_related('hauptkategorie')
-
+    
     from collections import defaultdict
     hauptkategorie_summen = defaultdict(float)
-
+    
     for kat in unterkategorien:
         hauptname = kat.hauptkategorie.name if kat.hauptkategorie else None
-
+    
         if hauptname in ["Einnahmen", "Sparen"]:
             continue
-
+    
         summe = (
             Buchung.objects
             .filter(
@@ -559,17 +546,16 @@ def statistiken_view(request):
             )
             .aggregate(Sum('betrag'))['betrag__sum'] or 0
         )
-
+    
         if hauptname and summe > 0:
             hauptkategorie_summen[hauptname] += float(summe)
-
+    
     pie_labels = list(hauptkategorie_summen.keys())
     pie_data = list(hauptkategorie_summen.values())
-
-    if not pie_data: 
+    if not pie_data:
         pie_labels = ["Keine Ausgaben"]
         pie_data = [0]
-
+    
     context = {
         'months': months,
         'einnahmen': einnahmen,
@@ -578,7 +564,7 @@ def statistiken_view(request):
         'pie_labels': pie_labels,
         'pie_data': pie_data,
     }
-
+    
     return render(request, 'core/statistiken.html', context)
 
 @login_required
@@ -590,16 +576,14 @@ def einstellungen(request):
                 password_form.save()
                 update_session_auth_hash(request, password_form.user)
                 return redirect(reverse("einstellungen") + "?pwchanged=1")
-            else:
-                pass
+    
     else:
         password_form = PasswordChangeForm(request.user)
-
-    from .forms import KategorieForm
+    
     kategorien = Kategorie.objects.filter(benutzer=request.user)
     form_create_kategorie = KategorieForm(user=request.user)
     formulare_bearbeiten = { k.pk: KategorieForm(instance=k, user=request.user) for k in kategorien }
-
+    
     return render(request, "core/einstellungen.html", {
         "password_form": password_form,
         "kategorien": kategorien,
