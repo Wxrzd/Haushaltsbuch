@@ -20,11 +20,9 @@
   {% endif %}
 
   <h3>Passwort ändern</h3>
-
   <form method="post">
     {% csrf_token %}
 
-    <!-- Fehlermeldungen als Bootstrap-Alert (falls vorhanden) -->
     {% if password_form.errors and request.method == "POST" and "change_password" in request.POST %}
       <div class="alert alert-danger" role="alert">
         <strong>Fehler:</strong>
@@ -36,7 +34,6 @@
       </div>
     {% endif %}
 
-    <!-- Altes Passwort -->
     <div class="mb-3">
       {{ password_form.old_password.label_tag }}
       {{ password_form.old_password }}
@@ -49,7 +46,6 @@
       </button>
     </div>
 
-    <!-- Neues Passwort (1) -->
     <div class="mb-3">
       {{ password_form.new_password1.label_tag }}
       {{ password_form.new_password1 }}
@@ -62,7 +58,6 @@
       </button>
     </div>
 
-    <!-- Neues Passwort (2) -->
     <div class="mb-3">
       {{ password_form.new_password2.label_tag }}
       {{ password_form.new_password2 }}
@@ -97,9 +92,10 @@
         <td>{{ kategorie.hauptkategorie.name }}</td>
         <td>{{ kategorie.kategoriebezeichnung }}</td>
         <td>
+          <!-- Bearbeiten-Button: btn-warning => btn-primary -->
           <button
             type="button"
-            class="btn btn-warning btn-sm"
+            class="btn btn-primary btn-sm"
             data-bs-toggle="modal"
             data-bs-target="#editKategorieModal{{ kategorie.pk }}"
           >
@@ -128,7 +124,6 @@
     Neue Kategorie hinzufügen
   </button>
 
-  <!-- Edit & Delete Modals für jede Kategorie -->
   {% for kategorie in kategorien %}
   <div
     class="modal fade"

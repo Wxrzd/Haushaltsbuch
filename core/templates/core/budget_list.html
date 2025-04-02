@@ -35,23 +35,22 @@
 <div class="row">
   {% for eintrag in budgets_mit_auswertung %}
     {% with budget=eintrag.obj %}
-    <!-- Jede Spalte als Flex-Container -->
     <div class="col-md-4 d-flex">
-      <!-- Die Karte selbst füllt die Spaltenhöhe -->
       <div class="card budget-card mb-4 flex-fill">
         <div class="card-body">
           <h5 class="card-title">{{ budget.name }}</h5>
           <p>Gesamtbetrag: {{ budget.betrag }} €</p>
           <p>Restbetrag: {{ eintrag.rest }} €</p>
 
-          <!-- Balken-Farbe abhängig vom Restbetrag -->
+          <!-- Balkenanzeige -->
           <div class="budget-progress mt-2">
-            <div class="used"
+            <div
+              class="used"
               style="
                 width: {{ eintrag.prozent }}%;
                 background-color: {% if eintrag.rest > 0 %}#198754{% else %}#dc3545{% endif %};
-              ">
-            </div>
+              "
+            ></div>
           </div>
           <small>{{ eintrag.prozent }} % verbraucht</small>
 
@@ -70,9 +69,10 @@
 
           <!-- Buttons mit Abstand -->
           <div class="d-flex gap-2 mt-2">
+            <!-- Bearbeiten-Button: btn-warning => btn-primary -->
             <button
               type="button"
-              class="btn btn-warning btn-sm"
+              class="btn btn-primary btn-sm"
               data-bs-toggle="modal"
               data-bs-target="#editBudgetModal{{ budget.id }}"
             >
@@ -155,7 +155,11 @@
             </div>
             <div class="modal-footer">
               <button type="submit" class="btn btn-danger">Ja, löschen</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
                 Abbrechen
               </button>
             </div>
