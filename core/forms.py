@@ -198,14 +198,29 @@ class KontoForm(forms.ModelForm):
             konto.save()
         return konto
 
-
 class VertragForm(forms.ModelForm):
+    # Diese beiden Felder überschreiben wir, damit wir ein format und input_formats angeben können:
+    startdatum = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'type': 'date'},  
+            format='%Y-%m-%d'
+        ),
+        input_formats=['%Y-%m-%d'],
+        required=False
+    )
+    ablaufdatum = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'type': 'date'},
+            format='%Y-%m-%d'
+        ),
+        input_formats=['%Y-%m-%d'],
+        required=False
+    )
+
     class Meta:
         model = Vertrag
         fields = ['name', 'betrag', 'startdatum', 'ablaufdatum', 'intervall', 'konto', 'kategorie']
         widgets = {
-            'startdatum': forms.DateInput(attrs={'type': 'date'}),
-            'ablaufdatum': forms.DateInput(attrs={'type': 'date'}),
             'intervall': forms.Select(choices=[
                 ('täglich', 'Täglich'),
                 ('wöchentlich', 'Wöchentlich'),
@@ -216,6 +231,7 @@ class VertragForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # Konto- und Kategorienauswahl einschränken:
         if user:
             self.fields['konto'].queryset = Konto.objects.filter(benutzer=user)
             self.fields['kategorie'].choices = get_kategorie_choices(user)
