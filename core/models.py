@@ -67,7 +67,6 @@ class Kategorie(models.Model):
 
 # Hilfsfunktion zum Hinzufügen eines Intervalls zu einem Datum
 def _add_interval(datum: date, intervall: str) -> date:
-    """Erhöht ein Datum um den angegebenen Intervallschritt."""
     if intervall == "täglich":
         return datum + timedelta(days=1)
     elif intervall == "wöchentlich":
@@ -111,12 +110,6 @@ class Vertrag(models.Model):
 
     @property
     def naechste_buchung(self):
-        """
-        Berechnet die nächste anstehende Buchung:
-        - Falls Vertrag abgelaufen oder kein Startdatum gesetzt: None
-        - Sonst so oft das Intervall addieren, bis wir >= heute sind,
-          aber nicht über das Ablaufdatum hinaus.
-        """
         if not self.startdatum or not self.intervall:
             return None
         if date.today() > self.ablaufdatum:
@@ -131,10 +124,6 @@ class Vertrag(models.Model):
         return pruef_datum
 
     def erstelle_buchung(self):
-        """
-        Beispiel-Methode zum Auslösen einer neuen Buchung.
-        Nutzt jetzt self.naechste_buchung dynamisch.
-        """
         from .models import Buchung
         next_date = self.naechste_buchung
         if not next_date:
